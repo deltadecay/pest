@@ -1,5 +1,9 @@
 <?php 
 
+namespace pest;
+
+use \Exception;
+
 class TestFailException extends Exception 
 { 
     public function __construct($value, $expect, $negate=false)
@@ -135,7 +139,7 @@ class Expectation
         $hasMatch = false;
         // Check if pattern is a regexp
         if (@preg_match($pattern, '') === false){
-            //not a regexp 
+            // not a regexp 
             $hasMatch = $this->value == $pattern;
         } else {
             // a valid regexp
@@ -166,7 +170,7 @@ class Expectation
                     $expectedMsg = $error;
                     // if error is a string we check if it is a pattern that matches the error message
                     if (@preg_match($error, '') === false){
-                        //not a regexp 
+                        // not a regexp 
                         $hasMatch = $e->getMessage() == $error;
                     } else {
                         // a valid regexp
@@ -193,6 +197,109 @@ class Expectation
             throw new TestFailException($thrownExceptionMsg, $expectedMsg, $this->negate);
         }
     }
+
+
+    public function toContain($item) 
+    {
+        if(!$this->holds(in_array($item, $this->value, true)))
+        {
+            throw new TestFailException($this->value, $item, $this->negate);
+        }
+    }
+
+    public function toHaveBeenCalled() 
+    {
+        if($this->value instanceof MockFn) {
+
+            if(!$this->holds(count($this->value->getCalls()) > 0))
+            {
+                throw new TestFailException("0 calls", ">0 calls", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "MockFn", $this->negate);
+        }
+    }
+
+    public function toHaveBeenCalledTimes($numCalls) 
+    {
+        if($this->value instanceof MockFn) {
+            $actualCalls = count($this->value->getCalls());
+            if(!$this->holds($actualCalls == $numCalls))
+            {
+                throw new TestFailException("$actualCalls calls", "$numCalls calls", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "MockFn", $this->negate);
+        }
+    }
+
+    public function toHaveBeenNthCalledWith($nthCall, ...$params)
+    {
+        if($this->value instanceof MockFn) {
+            $calls = $this->value->getCalls();
+            if(!$this->holds($calls[$nthCall] == $params))
+            {
+                throw new TestFailException($calls[$nthCall], $params, $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "MockFn", $this->negate);
+        }
+    }
+
+
+    public function toHaveReturned() 
+    {
+        if($this->value instanceof MockFn) {
+
+            $result_types = array_column($this->value->getResults(), "type");
+            if(!$this->holds(in_array("return", $result_types)))
+            {
+                throw new TestFailException("0 returns", ">0 returns", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "MockFn", $this->negate);
+        }
+    }
+
+    public function toHaveReturnedTimes($numTimesReturns) 
+    {
+        if($this->value instanceof MockFn) {
+
+            $result_types = array_column($this->value->getResults(), "type");
+            $num_returns = count(array_filter($result_types, function($type) { return $type == "return"; }));
+            if(!$this->holds($num_returns == $numTimesReturns))
+            {
+                throw new TestFailException("$num_returns returns", "$numTimesReturns returns", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "MockFn", $this->negate);
+        }
+    }
+
+
+    public function toHaveNthReturnedWith($nthCall, $value)
+    {
+        if($this->value instanceof MockFn) {
+            $results = $this->value->getResults();
+
+            $nthValue = $results[$nthCall]['value'];
+            $nthType = $results[$nthCall]['type'];
+
+            if(!$this->holds($nthValue == $value && $nthType == "return"))
+            {
+                $got = $nthType." ";
+                if ($nthType == "return") {
+                    $got .= $nthValue;
+                } else if ($nthType == "throw") {
+                    $got .= get_class($nthValue)."(".$nthValue->getMessage().")";
+                }
+                throw new TestFailException($got, "return $value", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "MockFn", $this->negate);
+        }
+    }
+
 }
 
 function expect($value)
@@ -200,7 +307,7 @@ function expect($value)
     return new Expectation($value);
 }
 
-function test($name, $callable) 
+function test($name, callable $callable) 
 {
     try {
         if(is_callable($callable)) {
@@ -214,4 +321,76 @@ function test($name, $callable)
         echo "\033[91m x FAIL \033[0m";
         echo $name, PHP_EOL, "\t", $e->getMessage(), PHP_EOL;
     }
+}
+
+
+
+class MockFn 
+{
+    private $callable = null;
+    private $calls = [];
+    private $results = [];
+
+
+    public function __construct() 
+    {
+        $this->mockReset();
+    }
+
+    public function getCalls() 
+    {
+        return $this->calls;
+    }
+    public function getResults() 
+    {
+        return $this->results;
+    }
+
+
+    public function mockClear()
+    {
+        $this->calls = [];
+        $this->results = [];
+    }
+
+    public function mockReset()
+    {
+        $this->mockClear();
+        $this->callable = function() { };
+    }
+
+    public function mockImplementation(callable $callable) 
+    {
+        $this->callable = $callable;
+    }
+
+    public function __invoke(...$params)
+    {
+        $currentCallId = count($this->calls);
+
+        $this->calls[$currentCallId] = $params;
+        $this->results[$currentCallId] = ["type" => "incomplete"];
+        unset($res);
+        $result = ["type" => "return", "value" => $res];
+        if(is_callable($this->callable)) {
+            try {
+                $res = call_user_func_array($this->callable, $params);
+                $result["value"] = $res;
+            } catch(Exception $e) {
+                $result = ["type" => "throw", "value" => $e];
+            }
+        }
+
+        $this->results[$currentCallId] = $result;
+
+        return $res;
+    }
+}
+
+
+function mockfn(callable $callable)
+{
+    $mock = new MockFn();
+    $mock->mockImplementation($callable);
+    return $mock;
 }
