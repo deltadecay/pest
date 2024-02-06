@@ -5,13 +5,13 @@ Pest is a simple testing framework heavily inspired by jest, but does not attemp
 This has been tested with php 5.6 and 8.2.
 
 Running the tests in **test.php**
-```sh
+```shell
 $ php test.php
 ```
 
 outputs status for each test whether it PASS or FAIL.
 
-```sh
+```shell
  o PASS equality
  o PASS add two ints
  o PASS null
