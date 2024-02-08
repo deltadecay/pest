@@ -7,9 +7,9 @@ require_once(__DIR__."/pest.php");
 
 use \Exception;
 
-use function pest\test;
-use function pest\expect;
-use function pest\mockfn;
+use function \pest\test;
+use function \pest\expect;
+use function \pest\mockfn;
 
 test("equality", function() {
     $a = ["name" => "Bob", "age" => 34];

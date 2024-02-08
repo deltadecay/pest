@@ -2,6 +2,8 @@
 
 namespace pest;
 
+require_once(__DIR__."/utils.php");
+
 use \Exception;
 
 class TestFailException extends Exception 
@@ -136,15 +138,8 @@ class Expectation
 
     public function toMatch($pattern)
     {
-        $hasMatch = false;
-        // Check if pattern is a regexp
-        if (@preg_match($pattern, '') === false){
-            // not a regexp 
-            $hasMatch = $this->value == $pattern;
-        } else {
-            // a valid regexp
-            $hasMatch = preg_match($pattern, $this->value);
-        }
+        $hasMatch = utils\hasTextMatch($pattern, $this->value);
+
         if(!$this->holds($hasMatch))
         {
             throw new TestFailException($this->value, $pattern, $this->negate);
@@ -168,14 +163,7 @@ class Expectation
             if (isset($error)) {
                 if(is_string($error)) {
                     $expectedMsg = $error;
-                    // if error is a string we check if it is a pattern that matches the error message
-                    if (@preg_match($error, '') === false){
-                        // not a regexp 
-                        $hasMatch = $e->getMessage() == $error;
-                    } else {
-                        // a valid regexp
-                        $hasMatch = preg_match($error, $e->getMessage());
-                    }
+                    $hasMatch = utils\hasTextMatch($error, $e->getMessage());
                 } else {
                     if($error instanceof Exception) {
                         $expectedMsg = get_class($error)."(".$error->getMessage().")";
@@ -293,7 +281,7 @@ class Expectation
                 } else if ($nthType == "throw") {
                     $got .= get_class($nthValue)."(".$nthValue->getMessage().")";
                 }
-                throw new TestFailException($got, "return $value", $this->negate);
+                throw new TestFailException($got, $value, $this->negate);
             }
         } else {
             throw new TestFailException($this->value, "MockFn", $this->negate);
