@@ -328,7 +328,7 @@ class Expectation
         if(($this->value instanceof \DOMNode) || $this->value == null) {
             $text = null;
             if($this->value != null) {
-                $text = $this->value->textContent;   
+                $text = \pest\utils\normalize($this->value->textContent);   
             }
             $hasMatch = utils\hasTextMatch($pattern, $text);
             if(!$this->holds($hasMatch))
@@ -361,11 +361,11 @@ class Expectation
     public function toHaveValue($expected)
     {
         if(($this->value instanceof \DOMNode) || $this->value == null) {
-            $nodeValue = '';
+            $nodeValue = null;
             if($this->value != null) {
-                $nodeValue = $this->value->nodeValue;
+                $nodeValue = \pest\utils\getElementValue($this->value);
             }
-            if(!$this->holds($nodeValue == $value))
+            if(!$this->holds($nodeValue === $expected))
             {
                 throw new TestFailException($nodeValue , $expected, $this->negate);
             }
@@ -374,6 +374,10 @@ class Expectation
         }
     }
 }
+
+
+
+
 
 function expect($value)
 {

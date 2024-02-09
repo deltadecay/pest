@@ -52,50 +52,60 @@ function debug($dom)
 // Returns a list of DOMNodes matching role
 function queryAllByRole($container, $role, $options = array())
 {
-    $elementsToFind = \pest\aria\getRoleElementsMap()[$role];
-
-    if(!is_array($elementsToFind)) {
-        return [];
-    }
-
     if($container instanceof DOMDocument) {
         $dom = $container;
     } else {
-        $dom = $container->$ownerDocument;    
+        $dom = $container->ownerDocument;    
     }
     $xpath = new DOMXPath($dom);
-
     $found = [];
-    foreach($elementsToFind as $elem) {
-        $name = $elem['name'];
-        if(count($elem['attributes']) > 0) {
-            // Search by name and attribute
-            foreach($elem['attributes'] as $attr) {
-                $attrName = $attr['name'];
-                $attrValue = $attr['value'];
 
-                $nodelist = $xpath->query("//".$name."[@".$attrName."='".$attrValue."']", $container);
-                foreach ($nodelist as $node) {
-                    $found[] = $node;
+    // Find elements with aria role
+    $nodelist = $xpath->query("//*[@role='".$role."']", $container);
+    foreach ($nodelist as $node) {
+        if(!in_array($node, $found)) {
+            $found[] = $node;
+        }
+    }
+
+    // Find elements with implicit roles
+    $elementsToFind = \pest\aria\getRoleElementsMap()[$role];
+    if(is_array($elementsToFind)) {
+        foreach($elementsToFind as $elem) {
+            $name = $elem['name'];
+            if(count($elem['attributes']) > 0) {
+                // Search by name and attribute
+                foreach($elem['attributes'] as $attr) {
+                    $attrName = $attr['name'];
+                    $attrValue = $attr['value'];
+
+                    $nodelist = $xpath->query("//".$name."[@".$attrName."='".$attrValue."']", $container);
+                    foreach ($nodelist as $node) {
+                        if(!in_array($node, $found)) {
+                            $found[] = $node;
+                        }
+                    }
                 }
-            }
 
-        } else {
-            // Just search by name
-            $nodelist = $xpath->query("//".$name, $container);
-            foreach ($nodelist as $node) {
-                $found[] = $node;
+            } else {
+                // Just search by name
+                $nodelist = $xpath->query("//".$name, $container);
+                foreach ($nodelist as $node) {
+                    if(!in_array($node, $found)) {
+                        $found[] = $node;
+                    }
+                }
             }
         }
     }
 
+    // If options name set then use it to filter with matching text content
     if(isset($options['name']) && strlen($options['name'])>0)
     {
         $matches = [];
-        // If options name set then use it to match text content
         $pattern = $options['name'];
         foreach($found as $node) {
-            $accessibleName = trim(\pest\utils\computeAccessibleName($node));
+            $accessibleName = \pest\utils\computeAccessibleName($node);
             $hasMatch = \pest\utils\hasTextMatch($pattern, $accessibleName);
             if($hasMatch) {
                 $matches[] = $node;
@@ -153,7 +163,7 @@ function queryAllByText($container, $pattern, $options = array())
     if($container instanceof DOMDocument) {
         $dom = $container;
     } else {
-        $dom = $container->$ownerDocument;    
+        $dom = $container->ownerDocument;    
     }
     $xpath = new DOMXPath($dom);
 
@@ -162,10 +172,16 @@ function queryAllByText($container, $pattern, $options = array())
 
     $found = [];
     foreach($nodelist as $node) {
-        $nodeText = trim($node->textContent);
-        $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText);
-        if($hasMatch) {
-            $found[] = $node;
+
+        $firstNonEmptyNode = \pest\utils\getFirstNonEmptyChildNode($node);
+        if($firstNonEmptyNode instanceof \DOMText) {
+            // The first non empty node is a DOMText, which means content begins with text.
+            // Thus wee can be sure that contents of the node can be considered as text
+            $nodeText = \pest\utils\normalize($node->textContent);
+            $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText);
+            if($hasMatch) {
+                $found[] = $node;
+            }
         }
     }
     return $found;
