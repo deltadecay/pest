@@ -189,11 +189,31 @@ class Expectation
 
     public function toContain($item) 
     {
-        if(!$this->holds(in_array($item, $this->value, true)))
-        {
-            throw new TestFailException($this->value, $item, $this->negate);
+        if(is_array($this->value)) {
+            if(!$this->holds(in_array($item, $this->value, true)))
+            {
+                throw new TestFailException($this->value, $item, $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "array", false);
         }
     }
+
+    public function toHaveCount($number)
+    {
+        if (is_array($this->value) || $this->value instanceof Countable) {
+            $cnt = count($this->value);
+            if(!$this->holds($cnt === $number))
+            {
+                throw new TestFailException("$cnt items", "$number items", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "array", false);
+        }
+    }
+
+
+    // MockFn specific matchers
 
     public function toHaveBeenCalled() 
     {
@@ -204,7 +224,7 @@ class Expectation
                 throw new TestFailException("0 calls", ">0 calls", $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "MockFn", $this->negate);
+            throw new TestFailException($this->value, "MockFn", false);
         }
     }
 
@@ -217,7 +237,7 @@ class Expectation
                 throw new TestFailException("$actualCalls calls", "$numCalls calls", $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "MockFn", $this->negate);
+            throw new TestFailException($this->value, "MockFn", false);
         }
     }
 
@@ -230,7 +250,7 @@ class Expectation
                 throw new TestFailException($calls[$nthCall], $params, $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "MockFn", $this->negate);
+            throw new TestFailException($this->value, "MockFn", false);
         }
     }
 
@@ -245,7 +265,7 @@ class Expectation
                 throw new TestFailException("0 returns", ">0 returns", $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "MockFn", $this->negate);
+            throw new TestFailException($this->value, "MockFn", false);
         }
     }
 
@@ -260,7 +280,7 @@ class Expectation
                 throw new TestFailException("$num_returns returns", "$numTimesReturns returns", $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "MockFn", $this->negate);
+            throw new TestFailException($this->value, "MockFn", false);
         }
     }
 
@@ -284,10 +304,75 @@ class Expectation
                 throw new TestFailException($got, $value, $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "MockFn", $this->negate);
+            throw new TestFailException($this->value, "MockFn", false);
         }
     }
 
+
+    // Dom specific matchers
+
+    public function toBeInTheDocument() 
+    {
+        if(($this->value instanceof \DOMNode) || $this->value == null) {
+            if(!$this->holds($this->value != null))
+            {
+                throw new TestFailException(null, "to be in document", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "DOMNode", false);
+        }
+    }
+
+    public function toHaveTextContent($pattern) 
+    {
+        if(($this->value instanceof \DOMNode) || $this->value == null) {
+            $text = null;
+            if($this->value != null) {
+                $text = $this->value->textContent;   
+            }
+            $hasMatch = utils\hasTextMatch($pattern, $text);
+            if(!$this->holds($hasMatch))
+            {
+                throw new TestFailException(null, $pattern, $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "DOMNode", false);
+        }
+    }
+    
+    public function toHaveClass($className) 
+    {
+        if(($this->value instanceof \DOMElement) || $this->value == null) {
+            $classes = [];
+            if($this->value != null) {
+                //$nodeClasses = $this->value->attributes->getNamedItem("class")->textContent;
+                $nodeClassAttr = $this->value->getAttribute("class");
+                $classes = explode(" ", $nodeClassAttr); 
+            }
+            if(!$this->holds(in_array($className, $classes)))
+            {
+                throw new TestFailException(implode(" ", $classes), "class $className", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "DOMElement", false);
+        }
+    }
+
+    public function toHaveValue($expected)
+    {
+        if(($this->value instanceof \DOMNode) || $this->value == null) {
+            $nodeValue = '';
+            if($this->value != null) {
+                $nodeValue = $this->value->nodeValue;
+            }
+            if(!$this->holds($nodeValue == $value))
+            {
+                throw new TestFailException($nodeValue , $expected, $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "DOMNode", false);
+        }
+    }
 }
 
 function expect($value)

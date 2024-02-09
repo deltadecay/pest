@@ -49,7 +49,7 @@ function debug($dom)
 }
 
 
-// Returns a list of DOMNode, matching role
+// Returns a list of DOMNodes matching role
 function queryAllByRole($container, $role, $options = array())
 {
     $elementsToFind = \pest\aria\getRoleElementsMap()[$role];
@@ -121,7 +121,7 @@ function queryByRole($container, $role, $options = array())
     throw new Exception("Expected at most one element with role $role, but found $n.");
 }
 
-// Get atleast on matching role, throws if nothing found
+// Get atleast one matching role, throws if nothing found
 function getAllByRole($container, $role, $options = array())
 {
     $found = queryAllByRole($container, $role, $options);
@@ -145,3 +145,67 @@ function getByRole($container, $role, $options = array())
     throw new Exception("Expected one element with role $role, but found $n.");
 }
 
+
+
+// Returns a list of DOMNodes matching pattern
+function queryAllByText($container, $pattern, $options = array())
+{
+    if($container instanceof DOMDocument) {
+        $dom = $container;
+    } else {
+        $dom = $container->$ownerDocument;    
+    }
+    $xpath = new DOMXPath($dom);
+
+    // Find all nodes that have text content
+    $nodelist = $xpath->query("//*[string-length(text())>0]", $container);
+
+    $found = [];
+    foreach($nodelist as $node) {
+        $nodeText = trim($node->textContent);
+        $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText);
+        if($hasMatch) {
+            $found[] = $node;
+        }
+    }
+    return $found;
+}
+
+
+// Returns matching pattern if found, null if not found, throws if many found
+function queryByText($container, $pattern, $options = array())
+{
+    $found = queryAllByText($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        return null;
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected at most one element with text $pattern, but found $n.");
+}
+
+// Get atleast one matching pattern, throws if nothing found
+function getAllByText($container, $pattern, $options = array())
+{
+    $found = queryAllByText($container, $pattern, $options);
+    if(count($found) == 0) {
+        throw new Exception("Exepected atleast one element with text $pattern, but found none.");
+    }
+    return $found;
+}
+
+// Get one matching pattern, throws if nothing found, throws if many found
+function getByText($container, $pattern, $options = array())
+{
+    $found = queryAllByText($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        throw new Exception("Expected one element with text $pattern, but found none.");
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected one element with text $pattern, but found $n.");
+}

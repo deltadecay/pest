@@ -3,6 +3,9 @@
 namespace pest\utils;
 
 function hasTextMatch($pattern, $str) {
+    if ($str == null) {
+        return false;
+    }
     // Check if pattern is a regexp
     if (@preg_match($pattern, '') === false){
         // not a regexp 

@@ -131,6 +131,15 @@ test("check persons in list", function() {
     expect($people)->not()->toContain(["name" => "Bob"]);
 });
 
+test("arrays", function() {
+
+    expect([1,2,4])->not()->toContain(3);
+    expect([1,2,4])->toContain(2);
+    expect([1,2,4])->toHaveCount(3);
+    expect([1,2,4])->not()->toHaveCount(1);
+});
+
+
 test("mock function", function() {
 
     $mockAdd = mockfn(function($a, $b) {
