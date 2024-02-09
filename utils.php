@@ -125,7 +125,12 @@ function getElementValue($node)
         } else if ($tagName == "select") {
             $value = getSelectValue($node);
         } else {
-            $value = $node->nodeValue;
+            // What other elements have value attribute?
+            if ($node->hasAttribute("value")) {
+                $value = $node->getAttribute("value");
+            } else {
+                $value = $node->nodeValue;
+            }
         }
     } else if ($node instanceof \DOMNode) {
         $value = $node->nodeValue;
