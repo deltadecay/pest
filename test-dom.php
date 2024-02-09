@@ -133,3 +133,21 @@ HTML;
     $closeElement = dom\getByTitle($dom, "Close");
     expect($closeElement)->toBeInTheDocument();
 });
+
+
+test("query ByAltText", function() {
+
+    $src = <<<HTML
+    <div>
+        <img alt="Incredibles 2 Poster" src="/incredibles-2.png" />
+    </div>
+HTML;
+    $dom = dom\parse($src);
+    //dom\debug($dom);
+
+    $incrediblesPosterImg = dom\getByAltText($dom, "/incredibles.*? poster/i");
+    expect($incrediblesPosterImg)->toBeInTheDocument();
+});
+
+
+

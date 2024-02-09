@@ -106,6 +106,7 @@ function queryAllByRole($container, $role, $options = array())
         $pattern = $options['name'];
         foreach($found as $node) {
             $accessibleName = \pest\utils\computeAccessibleName($node);
+            // the exact option has no effect on matching accesible names with the name pattern 
             $hasMatch = \pest\utils\hasTextMatch($pattern, $accessibleName);
             if($hasMatch) {
                 $matches[] = $node;
@@ -178,7 +179,7 @@ function queryAllByText($container, $pattern, $options = array())
             // The first non empty node is a DOMText, which means content begins with text.
             // Thus wee can be sure that contents of the node can be considered as text
             $nodeText = \pest\utils\normalize($node->textContent);
-            $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText);
+            $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText, $options);
             if($hasMatch) {
                 if(!in_array($node, $found)) {
                     $found[] = $node;
@@ -248,8 +249,8 @@ function queryAllByTestId($container, $pattern, $options = array())
     $found = [];
     foreach($nodelist as $node) {
         if($node instanceof \DOMElement) {
-            $testId = $node->getAttribute("data-testid");
-            $hasMatch = \pest\utils\hasTextMatch($pattern, $testId);
+            $testId = \pest\utils\normalize($node->getAttribute("data-testid"));
+            $hasMatch = \pest\utils\hasTextMatch($pattern, $testId, $options);
             if($hasMatch) {
                 if(!in_array($node, $found)) {
                     $found[] = $node;
@@ -315,8 +316,8 @@ function queryAllByTitle($container, $pattern, $options = array())
     $found = [];
     foreach($nodelist as $node) {
         if($node instanceof \DOMElement) {
-            $title = $node->getAttribute("title");
-            $hasMatch = \pest\utils\hasTextMatch($pattern, $title);
+            $title = \pest\utils\normalize($node->getAttribute("title"));
+            $hasMatch = \pest\utils\hasTextMatch($pattern, $title, $options);
             if($hasMatch) {
                 if(!in_array($node, $found)) {
                     $found[] = $node;
@@ -329,7 +330,7 @@ function queryAllByTitle($container, $pattern, $options = array())
     $nodelist = $xpath->query("//svg//title", $container);
     foreach($nodelist as $node) {   
         $text = \pest\utils\normalize($node->textContent);
-        $hasMatch = \pest\utils\hasTextMatch($pattern, $text);
+        $hasMatch = \pest\utils\hasTextMatch($pattern, $text, $options);
         if($hasMatch) {
             if(!in_array($node, $found)) {
                 $found[] = $node;
@@ -378,4 +379,77 @@ function getByTitle($container, $pattern, $options = array())
         return $found[0];
     } 
     throw new Exception("Expected one element with title $pattern, but found $n.");
+}
+
+
+
+
+// Returns a list of DOMNodes with matching alt attribute
+function queryAllByAltText($container, $pattern, $options = array())
+{
+    if($container instanceof DOMDocument) {
+        $dom = $container;
+    } else {
+        $dom = $container->ownerDocument;    
+    }
+    $xpath = new DOMXPath($dom);
+
+    // Find all nodes that have attribute alt 
+    $nodelist = $xpath->query("//*[string-length(@alt)>0]", $container);
+
+    $found = [];
+    foreach($nodelist as $node) {
+        $tagName = strtolower($node->tagName);
+        // alt attribute only accepted in img, input, area
+        if(($node instanceof \DOMElement) && in_array($tagName, ["img", "input", "area"])) {
+            $alt = \pest\utils\normalize($node->getAttribute("alt"));
+            $hasMatch = \pest\utils\hasTextMatch($pattern, $alt, $options);
+            if($hasMatch) {
+                if(!in_array($node, $found)) {
+                    $found[] = $node;
+                }
+            }
+        }
+    }
+    return $found;
+}
+
+
+
+// Returns matching alt attribute if found, null if not found, throws if many found
+function queryByAltText($container, $pattern, $options = array())
+{
+    $found = queryAllByAltText($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        return null;
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected at most one element with alt $pattern, but found $n.");
+}
+
+// Get atleast one matching alt attribute, throws if nothing found
+function getAllByAltText($container, $pattern, $options = array())
+{
+    $found = queryAllByAltText($container, $pattern, $options);
+    if(count($found) == 0) {
+        throw new Exception("Exepected atleast one element with alt $pattern, but found none.");
+    }
+    return $found;
+}
+
+// Get one matching alt attribute, throws if nothing found, throws if many found
+function getByAltText($container, $pattern, $options = array())
+{
+    $found = queryAllByAltText($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        throw new Exception("Expected one element with alt $pattern, but found none.");
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected one element with alt $pattern, but found $n.");
 }

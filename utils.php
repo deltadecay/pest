@@ -6,14 +6,22 @@ function normalize($text) {
     return trim(preg_replace("/\s+/", " ", $text));
   }
 
-function hasTextMatch($pattern, $str) {
+function hasTextMatch($pattern, $str, $options = []) {
+
+    $exact = isset($options['exact']) ? $options['exact'] : true;
+
     if ($str == null) {
         return false;
     }
     // Check if pattern is a regexp
     if (@preg_match($pattern, '') === false){
         // not a regexp 
-        $hasMatch = $pattern == $str;
+        if($exact) {
+            $hasMatch = $pattern == $str;
+        } else {
+            // Case-insensitive substring check
+            $hasMatch = stristr($str, $pattern) !== false;
+        }
     } else {
         // a valid regexp
         $hasMatch = preg_match($pattern, $str);
