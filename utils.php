@@ -2,17 +2,43 @@
 
 namespace pest\utils;
 
-function normalize($text) {
-    return trim(preg_replace("/\s+/", " ", $text));
-  }
+function normalize($text, $options = []) 
+{    
+    $trim = isset($options['trimWhitespace']) ? $options['trimWhitespace'] : true;
+    $collapseWhitespace = isset($options['collapseWhitespace']) ? $options['collapseWhitespace'] : true;
 
-function hasTextMatch($pattern, $str, $options = []) {
+    $t = $text;
+    if ($collapseWhitespace) {
+        $t = preg_replace("/\s+/", " ", $t);
+    }
+    if ($trim) {
+        $t = trim($t);
+    }
+    return $t;
+}
 
+function noNormalizer() 
+{
+    return function($str) { return $str; };
+}
+
+function getDefaultNormalizer($options = [])
+{
+    return function($str) use($options) { return \pest\utils\normalize($str, $options); };
+}
+
+function hasTextMatch($pattern, $str, $options = []) 
+{
     $exact = isset($options['exact']) ? $options['exact'] : true;
+    $normalizer = is_callable($options['normalizer']) ? $options['normalizer'] : getDefaultNormalizer($options);
 
     if ($str == null) {
         return false;
     }
+
+    // Normalize the input string
+    $str = $normalizer($str);
+
     // Check if pattern is a regexp
     if (@preg_match($pattern, '') === false){
         // not a regexp 
@@ -33,7 +59,7 @@ function hasTextMatch($pattern, $str, $options = []) {
 function computeAccessibleName(\DOMNode $node) {
 
     // TODO See https://www.w3.org/TR/accname-1.1/#mapping_additional_nd
-    $name = normalize($node->textContent);
+    $name = $node->textContent;
     return $name;
 }
 

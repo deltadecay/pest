@@ -178,7 +178,7 @@ function queryAllByText($container, $pattern, $options = array())
         if($firstNonEmptyNode instanceof \DOMText) {
             // The first non empty node is a DOMText, which means content begins with text.
             // Thus wee can be sure that contents of the node can be considered as text
-            $nodeText = \pest\utils\normalize($node->textContent);
+            $nodeText = $node->textContent;
             $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText, $options);
             if($hasMatch) {
                 if(!in_array($node, $found)) {
@@ -249,7 +249,7 @@ function queryAllByTestId($container, $pattern, $options = array())
     $found = [];
     foreach($nodelist as $node) {
         if($node instanceof \DOMElement) {
-            $testId = \pest\utils\normalize($node->getAttribute("data-testid"));
+            $testId = $node->getAttribute("data-testid");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $testId, $options);
             if($hasMatch) {
                 if(!in_array($node, $found)) {
@@ -316,7 +316,7 @@ function queryAllByTitle($container, $pattern, $options = array())
     $found = [];
     foreach($nodelist as $node) {
         if($node instanceof \DOMElement) {
-            $title = \pest\utils\normalize($node->getAttribute("title"));
+            $title = $node->getAttribute("title");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $title, $options);
             if($hasMatch) {
                 if(!in_array($node, $found)) {
@@ -329,7 +329,7 @@ function queryAllByTitle($container, $pattern, $options = array())
     // Find all title nodes which are descendants of svg
     $nodelist = $xpath->query("//svg//title", $container);
     foreach($nodelist as $node) {   
-        $text = \pest\utils\normalize($node->textContent);
+        $text = $node->textContent;
         $hasMatch = \pest\utils\hasTextMatch($pattern, $text, $options);
         if($hasMatch) {
             if(!in_array($node, $found)) {
@@ -402,7 +402,7 @@ function queryAllByAltText($container, $pattern, $options = array())
         $tagName = strtolower($node->tagName);
         // alt attribute only accepted in img, input, area
         if(($node instanceof \DOMElement) && in_array($tagName, ["img", "input", "area"])) {
-            $alt = \pest\utils\normalize($node->getAttribute("alt"));
+            $alt = $node->getAttribute("alt");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $alt, $options);
             if($hasMatch) {
                 if(!in_array($node, $found)) {

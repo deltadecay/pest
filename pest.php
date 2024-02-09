@@ -138,7 +138,13 @@ class Expectation
 
     public function toMatch($pattern)
     {
-        $hasMatch = utils\hasTextMatch($pattern, $this->value);
+        // Turn off normalizer, we do not want to collapse and trim whitespace
+        $options = [
+            //"trimWhitespace" => false,
+            //"collapseWhitespace" => false,
+            "normalizer" => \pest\utils\noNormalizer(),
+        ];
+        $hasMatch = utils\hasTextMatch($pattern, $this->value, $options);
 
         if(!$this->holds($hasMatch))
         {
@@ -328,7 +334,7 @@ class Expectation
         if(($this->value instanceof \DOMNode) || $this->value == null) {
             $text = null;
             if($this->value != null) {
-                $text = \pest\utils\normalize($this->value->textContent);   
+                $text = $this->value->textContent;   
             }
             $hasMatch = utils\hasTextMatch($pattern, $text);
             if(!$this->holds($hasMatch))
