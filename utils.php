@@ -60,7 +60,11 @@ function getSelectValue($select)
 
     if ($multiple) {
         $values = array_map(function($node){
-            return $node->getAttribute("value"); 
+            if($node->hasAttribute("value")) {
+                return $node->getAttribute("value");
+            } 
+            // If no value attribute, use the text content of the option
+            return $node->textContent;
         }, $selectedOptions);
         return $values;
     }

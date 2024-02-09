@@ -20,18 +20,14 @@ $src = <<<HTML
     <span class="greeting f50"> hello <br> world </span>
     <input type="text" name="age" value="50">
     <input type="checkbox" name="active" checked>
-    <select name="choices" role="menu">
-        <option value="1">First</option> 
-        <option value="2" selected>Second</option> 
-        <option value="3">Third</option> 
-    </select>
 </div>
 HTML;
 
 $dom = dom\parse($src);
-dom\debug($dom);
+
 
 test("query ByRole", function() use($dom) {
+    //dom\debug($dom);
 
     $headers = dom\queryAllByRole($dom, "heading", ["name" => "/^title$/i"]);
 
@@ -60,9 +56,80 @@ test("query ByText", function() use($dom) {
 
 });
 
-test("select", function() use($dom) {
+test("select", function() {
+
+    $src = <<<HTML
+    <select name="choices" role="menu">
+        <option value="1">First</option> 
+        <option value="2" selected>Second</option> 
+        <option value="3">Third</option> 
+    </select>
+HTML;
+    $dom = dom\parse($src);
 
     $select = dom\getByRole($dom, "menu");
     expect($select)->toBeInTheDocument();
     expect($select)->toHaveValue("2");
+});
+
+test("select multiple", function() {
+
+    $src = <<<HTML
+    <label for="dino-select">Choose a dinosaur:</label>
+    <select id="dino-select" role="menu" multiple>
+        <optgroup label="Theropods">
+            <option selected>Tyrannosaurus</option>
+            <option>Velociraptor</option>
+            <option>Deinonychus</option>
+        </optgroup>
+        <optgroup label="Sauropods">
+            <option>Diplodocus</option>
+            <option selected>Saltasaurus</option>
+            <option>Apatosaurus</option>
+        </optgroup>
+    </select>
+HTML;
+
+    $dom = dom\parse($src);
+    //dom\debug($dom);
+
+    $select = dom\getByRole($dom, "menu");
+    expect($select)->toBeInTheDocument();
+    expect($select)->toHaveValue(["Tyrannosaurus", "Saltasaurus"]);
+});
+
+
+
+test("query ByTestId", function() {
+
+    $src = <<<HTML
+    <div data-testid="my-custom-greeting">
+        <span>Hello</span>
+    </div>
+HTML;
+    $dom = dom\parse($src);
+
+    $select = dom\getByTestId($dom, "my-custom-greeting");
+    expect($select)->toBeInTheDocument();
+});
+
+
+test("query ByTitle", function() {
+
+    $src = <<<HTML
+    <div>
+        <span title="Delete" id="2"></span>
+        <svg>
+        <title>Close</title>
+        <g><path /></g>
+        </svg>
+    </div>
+HTML;
+    $dom = dom\parse($src);
+    //dom\debug($dom);
+
+    $deleteElement = dom\getByTitle($dom, "Delete");
+    expect($deleteElement)->toBeInTheDocument();
+    $closeElement = dom\getByTitle($dom, "Close");
+    expect($closeElement)->toBeInTheDocument();
 });

@@ -19,9 +19,9 @@ function parse($src)
     // Load content to a dummy root div and specify encoding with a meta tag
     $temp_dom = new DOMDocument();
     $loadOk = $temp_dom->loadHTML("<meta http-equiv='Content-Type' content='charset=utf-8' /><div id=\"$id\">$src</div>");
-    foreach(libxml_get_errors() as $error) {
+    /*foreach(libxml_get_errors() as $error) {
         echo "\t".$error->message.PHP_EOL;
-    }
+    }*/
     libxml_clear_errors();
     if (!$loadOk)
     {
@@ -180,7 +180,9 @@ function queryAllByText($container, $pattern, $options = array())
             $nodeText = \pest\utils\normalize($node->textContent);
             $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText);
             if($hasMatch) {
-                $found[] = $node;
+                if(!in_array($node, $found)) {
+                    $found[] = $node;
+                }
             }
         }
     }
@@ -224,4 +226,156 @@ function getByText($container, $pattern, $options = array())
         return $found[0];
     } 
     throw new Exception("Expected one element with text $pattern, but found $n.");
+}
+
+
+
+
+
+// Returns a list of DOMNodes with matching data-testid
+function queryAllByTestId($container, $pattern, $options = array())
+{
+    if($container instanceof DOMDocument) {
+        $dom = $container;
+    } else {
+        $dom = $container->ownerDocument;    
+    }
+    $xpath = new DOMXPath($dom);
+
+    // Find all nodes that have attribute data-testid
+    $nodelist = $xpath->query("//*[string-length(@data-testid)>0]", $container);
+
+    $found = [];
+    foreach($nodelist as $node) {
+        if($node instanceof \DOMElement) {
+            $testId = $node->getAttribute("data-testid");
+            $hasMatch = \pest\utils\hasTextMatch($pattern, $testId);
+            if($hasMatch) {
+                if(!in_array($node, $found)) {
+                    $found[] = $node;
+                }
+            }
+        }
+    }
+    return $found;
+}
+
+
+// Returns matching data-testid if found, null if not found, throws if many found
+function queryByTestId($container, $pattern, $options = array())
+{
+    $found = queryAllByTestId($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        return null;
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected at most one element with data-testid $pattern, but found $n.");
+}
+
+// Get atleast one matching data-testid, throws if nothing found
+function getAllByTestId($container, $pattern, $options = array())
+{
+    $found = queryAllByTestId($container, $pattern, $options);
+    if(count($found) == 0) {
+        throw new Exception("Exepected atleast one element with data-testid $pattern, but found none.");
+    }
+    return $found;
+}
+
+// Get one matching data-testid, throws if nothing found, throws if many found
+function getByTestId($container, $pattern, $options = array())
+{
+    $found = queryAllByTestId($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        throw new Exception("Expected one element with data-testid $pattern, but found none.");
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected one element with data-testid $pattern, but found $n.");
+}
+
+
+// Returns a list of DOMNodes with matching title attribute or title in svg
+function queryAllByTitle($container, $pattern, $options = array())
+{
+    if($container instanceof DOMDocument) {
+        $dom = $container;
+    } else {
+        $dom = $container->ownerDocument;    
+    }
+    $xpath = new DOMXPath($dom);
+
+    // Find all nodes that have attribute title
+    $nodelist = $xpath->query("//*[string-length(@title)>0]", $container);
+    $found = [];
+    foreach($nodelist as $node) {
+        if($node instanceof \DOMElement) {
+            $title = $node->getAttribute("title");
+            $hasMatch = \pest\utils\hasTextMatch($pattern, $title);
+            if($hasMatch) {
+                if(!in_array($node, $found)) {
+                    $found[] = $node;
+                }
+            }
+        }
+    }
+
+    // Find all title nodes which are descendants of svg
+    $nodelist = $xpath->query("//svg//title", $container);
+    foreach($nodelist as $node) {   
+        $text = \pest\utils\normalize($node->textContent);
+        $hasMatch = \pest\utils\hasTextMatch($pattern, $text);
+        if($hasMatch) {
+            if(!in_array($node, $found)) {
+                $found[] = $node;
+            }
+        }
+    }
+
+    return $found;
+}
+
+
+
+// Returns matching title if found, null if not found, throws if many found
+function queryByTitle($container, $pattern, $options = array())
+{
+    $found = queryAllByTitle($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        return null;
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected at most one element with title $pattern, but found $n.");
+}
+
+// Get atleast one matching title, throws if nothing found
+function getAllByTitle($container, $pattern, $options = array())
+{
+    $found = queryAllByTitle($container, $pattern, $options);
+    if(count($found) == 0) {
+        throw new Exception("Exepected atleast one element with title $pattern, but found none.");
+    }
+    return $found;
+}
+
+// Get one matching title, throws if nothing found, throws if many found
+function getByTitle($container, $pattern, $options = array())
+{
+    $found = queryAllByTitle($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        throw new Exception("Expected one element with title $pattern, but found none.");
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected one element with title $pattern, but found $n.");
 }
