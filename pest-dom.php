@@ -158,9 +158,13 @@ function getByRole($container, $role, $options = array())
 
 
 
-// Returns a list of DOMNodes matching pattern
+// Returns a list of DOMNodes matching text
 function queryAllByText($container, $pattern, $options = array())
 {
+    $ignore = isset($options['ignore']) ? $options['ignore'] : "script, style";
+    // TODO use selector to constrain the match
+    //$selector = isset($options['selector']) ? $options['selector'] : "*";
+
     if($container instanceof DOMDocument) {
         $dom = $container;
     } else {
@@ -171,16 +175,21 @@ function queryAllByText($container, $pattern, $options = array())
     // Find all nodes that have text content
     $nodelist = $xpath->query("//*[string-length(text())>0]", $container);
 
+    $ignoredNodes = [];
+    if (strlen($ignore) > 0) {
+        $ignoreXPath = \pest\utils\cssSelectorToXPath($ignore);
+        $ignoredNodes = iterator_to_array($xpath->query($ignoreXPath, $container));
+    }
     $found = [];
     foreach($nodelist as $node) {
-
+        $tagName = strtolower($node->tagName);
         $firstNonEmptyNode = \pest\utils\getFirstNonEmptyChildNode($node);
         if($firstNonEmptyNode instanceof \DOMText) {
             // The first non empty node is a DOMText, which means content begins with text.
             // Thus wee can be sure that contents of the node can be considered as text
             $nodeText = $node->textContent;
             $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText, $options);
-            if($hasMatch) {
+            if($hasMatch && !in_array($tagName, $ignoredNodes)) {
                 if(!in_array($node, $found)) {
                     $found[] = $node;
                 }
@@ -191,7 +200,7 @@ function queryAllByText($container, $pattern, $options = array())
 }
 
 
-// Returns matching pattern if found, null if not found, throws if many found
+// Returns matching text if found, null if not found, throws if many found
 function queryByText($container, $pattern, $options = array())
 {
     $found = queryAllByText($container, $pattern, $options);
@@ -205,7 +214,7 @@ function queryByText($container, $pattern, $options = array())
     throw new Exception("Expected at most one element with text $pattern, but found $n.");
 }
 
-// Get atleast one matching pattern, throws if nothing found
+// Get atleast one matching text, throws if nothing found
 function getAllByText($container, $pattern, $options = array())
 {
     $found = queryAllByText($container, $pattern, $options);
@@ -215,7 +224,7 @@ function getAllByText($container, $pattern, $options = array())
     return $found;
 }
 
-// Get one matching pattern, throws if nothing found, throws if many found
+// Get one matching text, throws if nothing found, throws if many found
 function getByText($container, $pattern, $options = array())
 {
     $found = queryAllByText($container, $pattern, $options);
@@ -244,7 +253,7 @@ function queryAllByTestId($container, $pattern, $options = array())
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute data-testid
-    $nodelist = $xpath->query("//*[string-length(@data-testid)>0]", $container);
+    $nodelist = $xpath->query("//*[@data-testid]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
@@ -312,7 +321,7 @@ function queryAllByTitle($container, $pattern, $options = array())
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute title
-    $nodelist = $xpath->query("//*[string-length(@title)>0]", $container);
+    $nodelist = $xpath->query("//*[@title]", $container);
     $found = [];
     foreach($nodelist as $node) {
         if($node instanceof \DOMElement) {
@@ -395,7 +404,7 @@ function queryAllByAltText($container, $pattern, $options = array())
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute alt 
-    $nodelist = $xpath->query("//*[string-length(@alt)>0]", $container);
+    $nodelist = $xpath->query("//*[@alt]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
@@ -453,3 +462,5 @@ function getByAltText($container, $pattern, $options = array())
     } 
     throw new Exception("Expected one element with alt $pattern, but found $n.");
 }
+
+

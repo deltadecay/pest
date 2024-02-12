@@ -165,3 +165,33 @@ function getFirstNonEmptyChildNode($node)
     }
     return $childNode;
 }
+
+
+function cssSelectorToXPath($selector) 
+{
+    // TODO Handle more complicated patterns
+
+    $parts = explode(",", $selector);
+    $xpathParts = [];
+    foreach($parts as $part) {
+        $elem = "*";
+        $part = trim($part);
+        $attr = "";
+        if ($part[0] == ".") {
+            // class
+            $class = substr($part, 1); 
+            $attr = "[contains(concat(' ',@class,' '),' ".$class." ')]";
+        } else if ($part[0] == "#") {
+            // id
+            $id = substr($part, 1);
+            $attr = "[@id='".$id."']";
+        } else {
+            $elem = $part;
+        }
+
+        $xpathParts[] = "//".$elem.$attr;
+    }
+
+    $xpath = implode("|", $xpathParts);
+    return $xpath;
+}
