@@ -190,6 +190,26 @@ HTML;
 
     $inputs = dom\queryAllByLabelText($dom, "Username");
     expect($inputs)->toHaveCount(5);
-    
+
+});
+
+
+test("query ByPlaceholderText", function() {
+
+    $src = <<<HTML
+    <div>
+        <input placeholder="Username" />
+
+        <textarea placeholder="Biography, etc."></textarea>
+    </div>
+HTML;
+    $dom = dom\parse($src);
+    //dom\debug($dom);
+
+    $inputs = dom\queryAllByPlaceholderText($dom, "Username");
+    expect($inputs)->toHaveCount(1);
+   
+    $textarea = dom\getByPlaceholderText($dom, "/biography/i");
+    expect($textarea)->toBeInTheDocument();
 });
 
