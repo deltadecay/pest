@@ -101,8 +101,9 @@ function getInputValue($input)
     return $value;
 }
 
-function getSelectValue($select)
+function getSelectValue($select, $options = [])
 {
+    $displayValue = isset($options['displayValue']) ? $options['displayValue'] : false;
     //$multiple = $select->hasAttribute("multiple");
     $multiple = getBoolAttribute($select, "multiple");
     $dom = $select->ownerDocument;    
@@ -119,7 +120,10 @@ function getSelectValue($select)
     $selectedOptions = array_values($selectedOptions);
 
     if ($multiple) {
-        $values = array_map(function($node){
+        $values = array_map(function($node) use($displayValue) {
+            if($displayValue) {
+                return $node->textContent;
+            }
             if($node->hasAttribute("value")) {
                 return $node->getAttribute("value");
             } 
@@ -133,7 +137,11 @@ function getSelectValue($select)
         return null;
     } 
 
-    $value = $selectedOptions[0]->getAttribute("value");
+    if($displayValue) {
+        $value = $selectedOptions[0]->textContent;
+    } else {
+        $value = $selectedOptions[0]->getAttribute("value");
+    }
     return $value;
 }
 

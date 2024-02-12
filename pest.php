@@ -379,6 +379,23 @@ class Expectation
             throw new TestFailException($this->value, "DOMNode", false);
         }
     }
+
+    public function toBeChecked()
+    {
+        if(($this->value instanceof \DOMElement) || $this->value == null) {
+            $checked = false;
+            if($this->value != null) {
+                $checked = \pest\utils\getBoolAttribute($this->value, "checked");
+            }
+            if(!$this->holds($checked))
+            {
+                throw new TestFailException($checked , "to be checked", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "DOMElement", false);
+        }
+    }
+
 }
 
 

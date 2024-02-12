@@ -9,7 +9,6 @@ use \Exception;
 
 use function \pest\test;
 use function \pest\expect;
-use function \pest\mockfn;
 use \pest\dom;
 
 $src = <<<HTML
@@ -40,6 +39,7 @@ test("query ByRole", function() use($dom) {
     $checkbox = dom\getByRole($dom, "checkbox");
     expect($checkbox)->toBeInTheDocument();
     expect($checkbox)->toHaveValue(true);
+    expect($checkbox)->toBeChecked();
 });
 
 test("query ByText", function() use($dom) {
@@ -211,5 +211,40 @@ HTML;
    
     $textarea = dom\getByPlaceholderText($dom, "/biography/i");
     expect($textarea)->toBeInTheDocument();
+});
+
+
+test("query ByDisplayValue", function() {
+
+    $src = <<<HTML
+    <div>
+        <input type="text" id="lastName" value="Anderson" />
+        <textarea id="messageTextArea">Some text message written here</textarea>
+
+        <select>
+            <option value="">State</option>
+            <option value="AL">Alabama</option>
+            <option selected value="AK">Alaska</option>
+            <option value="AZ">Arizona</option>
+        </select>
+    </div>
+HTML;
+    $dom = dom\parse($src);
+    //dom\debug($dom);
+
+    $input = dom\getByDisplayValue($dom, "Anderson");
+    expect($input)->toBeInTheDocument();
+    expect($input)->toHaveValue("Anderson");
+
+   
+    $textarea = dom\getByDisplayValue($dom, "/Some text message/i");
+    expect($textarea)->toBeInTheDocument();
+    expect($textarea)->toHaveValue("Some text message written here");
+
+
+    $select = dom\getByDisplayValue($dom, "Alaska");
+    expect($select)->toBeInTheDocument();
+    expect($select)->toHaveValue("AK"); // Note the value is AK, but display value Alaska
+
 });
 

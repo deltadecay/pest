@@ -642,3 +642,80 @@ function getByPlaceholderText($container, $pattern, $options = array())
     throw new Exception("Expected one element with placeholder $pattern, but found $n.");
 }
 
+
+// Returns a list of DOMNodes with matching display value
+function queryAllByDisplayValue($container, $pattern, $options = array())
+{
+    $dom = \pest\utils\getDocument($container);
+    $xpath = new DOMXPath($dom);
+
+    // Find all input/textarea 
+    $nodelist = $xpath->query("//input[@value]|//textarea", $container);
+    $found = [];
+    foreach($nodelist as $node) {
+        if($node instanceof \DOMElement) {
+            $displayValue = \pest\utils\getElementValue($node);
+            $hasMatch = \pest\utils\hasTextMatch($pattern, $displayValue, $options);
+            if($hasMatch) {
+                if(!in_array($node, $found, true)) {
+                    $found[] = $node;
+                }
+            }
+        }
+    }
+    // Find all selected options, but we do not vant the value attribute but instead the displayed value
+    // ie. the text content of option
+    $nodelist = $xpath->query("//select/option[@selected]/..", $container);
+    foreach($nodelist as $node) {
+        if($node instanceof \DOMElement) {
+            $displayValue = \pest\utils\getSelectValue($node, ["displayValue" => true]);
+            $hasMatch = \pest\utils\hasTextMatch($pattern, $displayValue, $options);
+            if($hasMatch) {
+                if(!in_array($node, $found, true)) {
+                    $found[] = $node;
+                }
+            }
+        }
+    }
+
+    return $found;
+}
+
+
+// Returns elements with matching display value if found, null if not found, throws if many found
+function queryByDisplayValue($container, $pattern, $options = array())
+{
+    $found = queryAllByDisplayValue($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        return null;
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected at most one element with display value $pattern, but found $n.");
+}
+
+// Get atleast one element with matching display value, throws if nothing found
+function getAllByDisplayValue($container, $pattern, $options = array())
+{
+    $found = queryAllByDisplayValue($container, $pattern, $options);
+    if(count($found) == 0) {
+        throw new Exception("Exepected atleast one element with placeholder $pattern, but found none.");
+    }
+    return $found;
+}
+
+// Get one element with matching display value, throws if nothing found, throws if many found
+function getByDisplayValue($container, $pattern, $options = array())
+{
+    $found = queryAllByDisplayValue($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        throw new Exception("Expected one element with display value $pattern, but found none.");
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected one element with display value $pattern, but found $n.");
+}
