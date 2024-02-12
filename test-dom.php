@@ -56,6 +56,21 @@ test("query ByText", function() use($dom) {
 
 });
 
+test("query ByText ignore", function() use($dom) {
+    
+
+    $src = <<<HTML
+    <script>var v = "Do not match this script";</script>
+    <style>.match { color: #fff; }</style>
+    <span class="match">Match only this span</span>
+HTML;
+    $dom = dom\parse($src);
+
+    $matches = dom\queryAllByText($dom, "/match/i", ["ignore" => "script, style"]);
+    expect(count($matches))->toBe(1);
+    expect($matches[0])->toHaveTextContent("Match only this span");
+});
+
 test("select", function() {
 
     $src = <<<HTML
@@ -150,4 +165,31 @@ HTML;
 });
 
 
+test("query ByLabelText", function() {
+
+    $src = <<<HTML
+    <div>
+        <label for="username-input">Username</label>
+        <input id="username-input" />
+
+        <label id="username-label">Username</label>
+        <input aria-labelledby="username-label" />
+
+        <label>Username <input /></label>
+
+        <label>
+            <span>Username</span>
+            <input />
+        </label>
+
+        <input aria-label="Username" />
+    </div>
+HTML;
+    $dom = dom\parse($src);
+    //dom\debug($dom);
+
+    $inputs = dom\queryAllByLabelText($dom, "Username");
+    expect($inputs)->toHaveCount(5);
+    
+});
 

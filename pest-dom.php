@@ -52,18 +52,19 @@ function debug($dom)
 // Returns a list of DOMNodes matching role
 function queryAllByRole($container, $role, $options = array())
 {
-    if($container instanceof DOMDocument) {
+    /*if($container instanceof DOMDocument) {
         $dom = $container;
     } else {
         $dom = $container->ownerDocument;    
-    }
+    }*/
+    $dom = \pest\utils\getDocument($container);
     $xpath = new DOMXPath($dom);
     $found = [];
 
     // Find elements with aria role
     $nodelist = $xpath->query("//*[@role='".$role."']", $container);
     foreach ($nodelist as $node) {
-        if(!in_array($node, $found)) {
+        if(!in_array($node, $found, true)) {
             $found[] = $node;
         }
     }
@@ -81,7 +82,7 @@ function queryAllByRole($container, $role, $options = array())
 
                     $nodelist = $xpath->query("//".$name."[@".$attrName."='".$attrValue."']", $container);
                     foreach ($nodelist as $node) {
-                        if(!in_array($node, $found)) {
+                        if(!in_array($node, $found, true)) {
                             $found[] = $node;
                         }
                     }
@@ -91,7 +92,7 @@ function queryAllByRole($container, $role, $options = array())
                 // Just search by name
                 $nodelist = $xpath->query("//".$name, $container);
                 foreach ($nodelist as $node) {
-                    if(!in_array($node, $found)) {
+                    if(!in_array($node, $found, true)) {
                         $found[] = $node;
                     }
                 }
@@ -165,21 +166,23 @@ function queryAllByText($container, $pattern, $options = array())
     // TODO use selector to constrain the match
     //$selector = isset($options['selector']) ? $options['selector'] : "*";
 
-    if($container instanceof DOMDocument) {
+    /*if($container instanceof DOMDocument) {
         $dom = $container;
     } else {
         $dom = $container->ownerDocument;    
-    }
+    }*/
+    $dom = \pest\utils\getDocument($container);
     $xpath = new DOMXPath($dom);
-
-    // Find all nodes that have text content
-    $nodelist = $xpath->query("//*[string-length(text())>0]", $container);
 
     $ignoredNodes = [];
     if (strlen($ignore) > 0) {
         $ignoreXPath = \pest\utils\cssSelectorToXPath($ignore);
         $ignoredNodes = iterator_to_array($xpath->query($ignoreXPath, $container));
     }
+
+    // Find all nodes that have text content
+    $nodelist = $xpath->query("//*[string-length(text())>0]", $container);
+
     $found = [];
     foreach($nodelist as $node) {
         $tagName = strtolower($node->tagName);
@@ -189,8 +192,8 @@ function queryAllByText($container, $pattern, $options = array())
             // Thus wee can be sure that contents of the node can be considered as text
             $nodeText = $node->textContent;
             $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText, $options);
-            if($hasMatch && !in_array($tagName, $ignoredNodes)) {
-                if(!in_array($node, $found)) {
+            if($hasMatch && !in_array($node, $ignoredNodes, true)) {
+                if(!in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -245,11 +248,12 @@ function getByText($container, $pattern, $options = array())
 // Returns a list of DOMNodes with matching data-testid
 function queryAllByTestId($container, $pattern, $options = array())
 {
-    if($container instanceof DOMDocument) {
+    /*if($container instanceof DOMDocument) {
         $dom = $container;
     } else {
         $dom = $container->ownerDocument;    
-    }
+    }*/
+    $dom = \pest\utils\getDocument($container);
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute data-testid
@@ -261,7 +265,7 @@ function queryAllByTestId($container, $pattern, $options = array())
             $testId = $node->getAttribute("data-testid");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $testId, $options);
             if($hasMatch) {
-                if(!in_array($node, $found)) {
+                if(!in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -313,11 +317,12 @@ function getByTestId($container, $pattern, $options = array())
 // Returns a list of DOMNodes with matching title attribute or title in svg
 function queryAllByTitle($container, $pattern, $options = array())
 {
-    if($container instanceof DOMDocument) {
+    /*if($container instanceof DOMDocument) {
         $dom = $container;
     } else {
         $dom = $container->ownerDocument;    
-    }
+    }*/
+    $dom = \pest\utils\getDocument($container);
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute title
@@ -328,7 +333,7 @@ function queryAllByTitle($container, $pattern, $options = array())
             $title = $node->getAttribute("title");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $title, $options);
             if($hasMatch) {
-                if(!in_array($node, $found)) {
+                if(!in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -341,7 +346,7 @@ function queryAllByTitle($container, $pattern, $options = array())
         $text = $node->textContent;
         $hasMatch = \pest\utils\hasTextMatch($pattern, $text, $options);
         if($hasMatch) {
-            if(!in_array($node, $found)) {
+            if(!in_array($node, $found, true)) {
                 $found[] = $node;
             }
         }
@@ -396,11 +401,12 @@ function getByTitle($container, $pattern, $options = array())
 // Returns a list of DOMNodes with matching alt attribute
 function queryAllByAltText($container, $pattern, $options = array())
 {
-    if($container instanceof DOMDocument) {
+    /*if($container instanceof DOMDocument) {
         $dom = $container;
     } else {
         $dom = $container->ownerDocument;    
-    }
+    }*/
+    $dom = \pest\utils\getDocument($container);
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute alt 
@@ -414,7 +420,7 @@ function queryAllByAltText($container, $pattern, $options = array())
             $alt = $node->getAttribute("alt");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $alt, $options);
             if($hasMatch) {
-                if(!in_array($node, $found)) {
+                if(!in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -463,4 +469,116 @@ function getByAltText($container, $pattern, $options = array())
     throw new Exception("Expected one element with alt $pattern, but found $n.");
 }
 
+
+
+// Returns a list of DOMNodes referenced by labels
+function queryAllByLabelText($container, $pattern, $options = array())
+{
+    // TODO use selector to constrain the match
+    //$selector = isset($options['selector']) ? $options['selector'] : "*";
+
+    $validInputElements = ["input","select","textarea","meter","progress"];
+
+    $dom = \pest\utils\getDocument($container);
+    $xpath = new DOMXPath($dom);
+    // Find all labels with text 
+    $labelNodes = $xpath->query("//label[string-length(text())>0]", $container);
+
+    $found = [];
+    foreach($labelNodes as $labelNode) {
+        $tagName = strtolower($labelNode->tagName);
+        $text = $labelNode->textContent; 
+        $hasMatch = \pest\utils\hasTextMatch($pattern, $text, $options);
+
+        if(($labelNode instanceof \DOMElement) && $hasMatch) {
+            $for = $labelNode->getAttribute("for");
+            $id = $labelNode->getAttribute("id");
+            if(strlen($for) > 0) {
+                // "for" attribute, must find an input with matching id
+                $inputNodes = $xpath->query("//*[@id='".$for."']");
+                foreach($inputNodes as $inputNode) {
+                    $inputTagName = strtolower($inputNode->tagName);
+                    if(!in_array($inputNode, $found, true) && in_array($inputTagName, $validInputElements)) {
+                        $found[] = $inputNode;
+                    }
+                }
+            }
+            if(strlen($id) > 0) {
+                // "id" attribute, must find an input with matching aria-labelledby
+                $inputNodes = $xpath->query("//*[@aria-labelledby='".$id."']");
+                foreach($inputNodes as $inputNode) {
+                    $inputTagName = strtolower($inputNode->tagName);
+                    if(!in_array($inputNode, $found, true) && in_array($inputTagName, $validInputElements)) {
+                        $found[] = $inputNode;
+                    }
+                }
+            }
+
+            // Any child input nodes to this label
+            $inputNodes = $xpath->query("//*", $labelNode);
+            foreach($inputNodes as $inputNode) {
+                $inputTagName = strtolower($inputNode->tagName);
+                if(!in_array($inputNode, $found, true) && in_array($inputTagName, $validInputElements)) {
+                    $found[] = $inputNode;
+                }
+            }
+        }
+    }
+
+    // Any element with attribute aria-label, this can be used on any interactive element not
+    // just those constrained by label elements
+    $inputNodes = $xpath->query("//*[@aria-label]", $container);
+    foreach($inputNodes as $inputNode) {
+        $inputTagName = strtolower($inputNode->tagName);
+        $ariaLabel = $inputNode->getAttribute("aria-label");
+        $hasMatch = \pest\utils\hasTextMatch($pattern, $ariaLabel, $options);
+        if($hasMatch) {
+            if(!in_array($inputNode, $found, true)) {
+                $found[] = $inputNode;
+            }
+        }
+    }
+
+    return $found;
+}
+
+
+
+// Returns elements with matching labels if found, null if not found, throws if many found
+function queryByLabelText($container, $pattern, $options = array())
+{
+    $found = queryAllByLabelText($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        return null;
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected at most one element with label $pattern, but found $n.");
+}
+
+// Get atleast one element with matching label, throws if nothing found
+function getAllByLabelText($container, $pattern, $options = array())
+{
+    $found = queryAllByLabelText($container, $pattern, $options);
+    if(count($found) == 0) {
+        throw new Exception("Exepected atleast one element with label $pattern, but found none.");
+    }
+    return $found;
+}
+
+// Get one element with matching label, throws if nothing found, throws if many found
+function getByLabelText($container, $pattern, $options = array())
+{
+    $found = queryAllByLabelText($container, $pattern, $options);
+    $n = count($found);
+    if ($n == 0) {
+        throw new Exception("Expected one element with label $pattern, but found none.");
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected one element with label $pattern, but found $n.");
+}
 

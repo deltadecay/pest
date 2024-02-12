@@ -56,11 +56,34 @@ function hasTextMatch($pattern, $str, $options = [])
 }
 
 
-function computeAccessibleName(\DOMNode $node) {
+function getDocument($node)
+{
+    if($node instanceof \DOMDocument) {
+        $doc = $node;
+    } else {
+        $doc = $node->ownerDocument;    
+    }
+    return $doc;
+}
+
+function computeAccessibleName(\DOMNode $node) 
+{
 
     // TODO See https://www.w3.org/TR/accname-1.1/#mapping_additional_nd
     $name = $node->textContent;
     return $name;
+}
+
+function getBoolAttribute($element, $attr)
+{
+    if($element->hasAttribute($attr)) {
+        // attr selected returns 'selected'
+        // attr selected='' return ''
+        // attr selected='false' return false
+        $val = $element->getAttribute($attr);
+        return ($val == $attr || strtolower($val) == "true" || $val == "1");
+    }
+    return false;
 }
 
 function getInputValue($input) 
@@ -70,7 +93,8 @@ function getInputValue($input)
         // If number, coerce to number by adding zero
         $value = $input->hasAttribute("value") ? ($input->getAttribute("value") + 0) : null;
     } else if ($type == "checkbox") {
-        $value = $input->hasAttribute("checked");
+        //$value = $input->hasAttribute("checked");
+        $value = getBoolAttribute($input, "checked");
     } else {
         $value = $input->getAttribute("value");
     }
@@ -79,14 +103,16 @@ function getInputValue($input)
 
 function getSelectValue($select)
 {
-    $multiple = $select->hasAttribute("multiple");
+    //$multiple = $select->hasAttribute("multiple");
+    $multiple = getBoolAttribute($select, "multiple");
     $dom = $select->ownerDocument;    
     $xpath = new \DOMXPath($dom);
     
     $optionNodes = iterator_to_array($xpath->query("//option", $select));
 
     $selectedOptions = array_filter($optionNodes, function($node) { 
-        return $node->hasAttribute("selected"); 
+        //return $node->hasAttribute("selected"); 
+        return getBoolAttribute($node, "selected");
     });
 
     // array_filter preserves the keys, so remove them
