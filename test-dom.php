@@ -375,3 +375,24 @@ HTML;
     expect($name)->toMatch("one-time code");
 });
 
+
+test("accessible names: traverse button", function() {
+    $src = <<<HTML
+<button>Move to <img src="bin.svg" alt="trash"></button>
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "button"));
+    expect($name)->toMatch("Move to trash");
+});
+
+test("accessible names: complex traversal", function() {
+    $src = <<<HTML
+<div id="meeting-1">
+  <button aria-labelledby="meeting-1" aria-label="Remove meeting:">X</button>
+  Daily status report
+</div>
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "button"));
+    expect($name)->toMatch("Remove meeting: Daily status report");
+});
