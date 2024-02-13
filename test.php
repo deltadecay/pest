@@ -82,6 +82,15 @@ test("match with regexp", function() {
     expect($a)->not()->toMatch("/^abc$/");  
 });
 
+test("match with empty string", function() {
+    $a = "";
+    expect("" == "")->toBeTruthy();
+    expect("" === "")->toBeTruthy();
+    expect(\pest\utils\hasTextMatch("", "", ["normalizer" => \pest\utils\noNormalizer()]))->toBeTruthy();
+    expect($a)->toMatch("");   
+    expect($a)->toMatch("/^$/");   
+});
+
 test("throws", function() {
 
     function afunc() {

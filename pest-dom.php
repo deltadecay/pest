@@ -70,7 +70,7 @@ function queryAllByRole($container, $role, $options = array())
     }
 
     // Find elements with implicit roles
-    $elementsToFind = \pest\aria\getRoleElementsMap()[$role];
+    $elementsToFind = \pest\aria\getElementsForRole($role);
     if(is_array($elementsToFind)) {
         foreach($elementsToFind as $elem) {
             $name = $elem['name'];
@@ -500,7 +500,9 @@ function queryAllByLabelText($container, $pattern, $options = array())
             }
             if(strlen($id) > 0) {
                 // "id" attribute, must find an input with matching aria-labelledby
-                $inputNodes = $xpath->query("//*[@aria-labelledby='".$id."']");
+                // Note! aria-labelledby can be a space separated list
+                //$inputNodes = $xpath->query("//*[@aria-labelledby='".$id."']");
+                $inputNodes = $xpath->query("//*[contains(concat(' ',@aria-labelledby,' '),' ".$id." ')]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
                     if(!in_array($inputNode, $found, true) && in_array($inputTagName, $validInputElements)) {

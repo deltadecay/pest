@@ -248,3 +248,130 @@ HTML;
 
 });
 
+
+test("accessible names: read more", function() {
+    $src = <<<HTML
+<h2 id="bees-heading">7 ways you can help save the bees</h2>
+<p>Bees are disappearing rapidly. Here are seven things you can do to help.</p>
+<p><a id="bees-read-more" aria-labelledby="bees-read-more bees-heading">Read more...</a></p>
+HTML;
+    $dom = dom\parse($src);
+    $para = \pest\utils\querySelector($dom, "#bees-read-more");
+    $name = \pest\utils\computeAccessibleName($para);
+    expect($name)->toMatch("Read more... 7 ways you can help save the bees");
+});
+
+test("accessible names: hidden", function() {
+    $src = <<<HTML
+<span id="night-mode-label" hidden>Night mode</span>
+<input type="checkbox" role="switch" aria-labelledby="night-mode-label">
+HTML;
+    $dom = dom\parse($src);
+    $input = \pest\utils\querySelector($dom, "input");
+    $name = \pest\utils\computeAccessibleName($input);
+    expect($name)->toMatch("Night mode");
+});
+
+
+test("accessible names: no name", function() {
+    $src = <<<HTML
+<input name="code">
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    expect($name)->toMatch("");
+});
+
+test("accessible names: placeholder", function() {
+    $src = <<<HTML
+<input name="code"
+  placeholder="One-time code">
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    expect($name)->toMatch("One-time code");
+});
+
+test("accessible names: title", function() {
+    $src = <<<HTML
+<input name="code"
+  placeholder="123456"
+  title="One-time code">
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    expect($name)->toMatch("One-time code");
+});
+
+test("accessible names: label implicit", function() {
+    $src = <<<HTML
+<label>One-time code
+  <input name="code"
+    placeholder="123456"
+    title="Get your code from the app.">
+</label>
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    expect($name)->toMatch("One-time code");
+});
+
+test("accessible names: label explicit embedded", function() {
+    $src = <<<HTML
+<label for="code">One-time code
+  <input id="code" name="code"
+    placeholder="123456"
+    title="Get your code from the app.">
+</label>
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    expect($name)->toMatch("One-time code");
+});
+
+test("accessible names: label explicit", function() {
+    $src = <<<HTML
+<label for="code">One-time code</label>
+<input id="code" name="code"
+    placeholder="123456"
+    title="Get your code from the app.">
+
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    expect($name)->toMatch("One-time code");
+});
+
+test("accessible names: aria-label", function() {
+    $src = <<<HTML
+<label>Code
+  <input name="code"
+    aria-label="One-time code"
+    placeholder="123456"
+    title="Get your code from the app.">
+</label>
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    expect($name)->toMatch("One-time code");
+});
+
+
+test("accessible names: aria-labelledby", function() {
+    $src = <<<HTML
+<p>Please fill in your <span id="code-label">one-time code</span> to log in.</p>
+<p>
+  <label>Code
+    <input name="code"
+    aria-labelledby="code-label"
+    aria-label="This is ignored"
+    placeholder="123456"
+    title="Get your code from the app.">
+  </label>
+</p>
+HTML;
+    $dom = dom\parse($src);
+    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    expect($name)->toMatch("one-time code");
+});
+

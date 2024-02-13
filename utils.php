@@ -32,12 +32,17 @@ function hasTextMatch($pattern, $str, $options = [])
     $exact = isset($options['exact']) ? $options['exact'] : true;
     $normalizer = is_callable($options['normalizer']) ? $options['normalizer'] : getDefaultNormalizer($options);
 
-    if ($str == null) {
+    if ($str === null) {
         return false;
     }
 
     // Normalize the input string
     $str = $normalizer($str);
+
+    if($pattern == "") {
+        // Special case when pattern is empty
+        return $pattern == $str;
+    }
 
     // Check if pattern is a regexp
     if (@preg_match($pattern, '') === false){
@@ -77,21 +82,23 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
 
     if ($node instanceof \DOMText) {
         $text = normalize($node->textContent);
-        if(strlen($text)>0) {
-            return $text;
-        }  
+        return $text;
     }
 
     if($node->hasAttribute("aria-labelledby") && $traversal['aria-labelledby']==0) {
-
-        $id = $node->getAttribute("aria-labelledby");   
-        $refNameNodes = $xpath->query("//*[@id='".$id."']");
+        // Note! aria-labelledby can be a space separated list
+        $ids = explode(" ", $node->getAttribute("aria-labelledby"));
         $accNames = [];
-        $traversal['aria-labelledby']++;
-        foreach($refNameNodes as $refNameNode) {
-            $accNames[] = normalize(computeAccessibleName($refNameNode, $traversal));
+        foreach($ids as $id) {
+            $refNameNodes = $xpath->query("//*[@id='".$id."']");
+            $traversal['source'] = $node;
+            $traversal['aria-labelledby']++;
+            foreach($refNameNodes as $refNameNode) {
+                $accNames[] = normalize(computeAccessibleName($refNameNode, $traversal));
+            }
+            $traversal['aria-labelledby']--;
+            unset($traversal['source']);
         }
-        $traversal['aria-labelledby']--;
         // join with space according to doc 2.B.ii.c
         $joinedName = trim(implode(" ", $accNames));
         if(strlen($joinedName)>0) {
@@ -108,15 +115,22 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
         }   
     }
 
+    // aria-labelledby and aria-label can still be used for naming hidden elements
+    if(isElementHidden($node) && $traversal['aria-labelledby']==0) {
+        return "";
+    }
+
     if($node->hasAttribute("id") && $traversal['label']==0) {
         $id = $node->getAttribute("id");   
         $labelNodes = $xpath->query("//label[@for='".$id."']");
         $accNames = [];
+        $traversal['source'] = $node;
         $traversal['label']++;
         foreach($labelNodes as $labelNode) {
             $accNames[] = normalize(computeAccessibleName($labelNode, $traversal));
         }
         $traversal['label']--;
+        unset($traversal['source']);
         // join with space according to doc 2.B.ii.c
         $joinedName = trim(implode(" ", $accNames));
         if(strlen($joinedName)>0) {
@@ -124,12 +138,30 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
         }   
     }
 
+    if($node->parentNode != null && $node->parentNode->tagName == "label") {
+        // If a label is the direct parent node and current node is a form input
+        $validInputElements = ["input","select","textarea","meter","progress"];
+        if(in_array($tagName, $validInputElements)) {
+            $accNames = [];
+            $traversal['source'] = $node;
+            $traversal['label']++;
+            $labelNode = $node->parentNode;
+            $accNames[] = normalize(computeAccessibleName($labelNode, $traversal));
+            $traversal['label']--;
+            unset($traversal['source']);
+            // join with space according to doc 2.B.ii.c
+            $joinedName = trim(implode(" ", $accNames));
+            if(strlen($joinedName)>0) {
+                return $joinedName;
+            }   
+        }
+    }
+
     $role = '';
     if($node->hasAttribute("role")) {
         $role = $node->getAttribute("role");
     } else {
-        // TODO get implicit role from tagName
-        $roles = \pest\aria\getElementRoleMap()[$tagName];
+        $roles = \pest\aria\getRolesForElement($tagName);
         foreach($roles as $roleData) {
             if (isset($roleData["attribute"])) {
                 $attrName = $roleData["attribute"]["name"];
@@ -155,12 +187,6 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
         }   
     }
 
-    if($node->hasAttribute("title")) {
-        $title = $node->getAttribute("title");
-        if(strlen($title)>0) {
-            return $title;
-        }  
-    }
 
     if($tagName == "img" && $node->hasAttribute("alt")) {
         $alt = $node->getAttribute("alt");
@@ -169,7 +195,55 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
         }  
     }
 
+    // If naming from label then traverse its children
+    if ($traversal['aria-labelledby'] || $traversal['label']) {
+        $accNames = [];
+        foreach($node->childNodes as $childNode) {
+            // Traverse child nodes as long as they are not the source of recursion (avoid loops)
+            if ($traversal['source'] != $childNode) {
+                $accNames[] = normalize(computeAccessibleName($childNode, $traversal));
+            }
+        }
+        $joinedName = trim(implode(" ", $accNames));
+        if(strlen($joinedName)>0) {
+            return $joinedName;
+        }   
+    }
+
+    if($node->hasAttribute("title")) {
+        $title = $node->getAttribute("title");
+        if(strlen($title)>0) {
+            return $title;
+        }  
+    }
+
+
+    if($node->hasAttribute("placeholder")) {
+        $placeholder = $node->getAttribute("placeholder");
+        if(strlen($placeholder)>0) {
+            return $placeholder;
+        }  
+    }
+
     return "";
+}
+
+function isElementHidden($node)
+{
+    // Check style for css which hides thee element
+    $style = $node->getAttribute("style");
+    if(strlen($style) > 0) {
+        if(preg_match("/display\:\s*none\s*\;/i", $style)) {
+            // display: none;
+            return true;
+        }
+        if(preg_match("/visibility\:\s*hidden\s*\;/i", $style)) {
+            //visibility: hidden;
+            return true;
+        }
+    }
+    // Is there a hidden attribute
+    return getBoolAttribute($node, "hidden");
 }
 
 function getBoolAttribute($element, $attr)
@@ -327,3 +401,25 @@ function cssSelectorToXPath($selector)
     $xpath = implode("|", $xpathParts);
     return $xpath;
 }
+
+
+function querySelectorAll($node, $selector) 
+{
+    $dom = getDocument($node);    
+    $xpath = new \DOMXPath($dom);
+
+    $q = cssSelectorToXPath($selector);
+    $elements = iterator_to_array($xpath->query($q, $node));
+    return $elements;
+}
+
+
+function querySelector($node, $selector) 
+{
+    $elements = querySelectorAll($node, $selector);
+    if(count($elements) > 0) {
+        return $elements[0];
+    }
+    return null;
+}
+

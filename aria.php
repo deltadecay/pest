@@ -46,6 +46,15 @@ function getRoleElementsMap()
     return $roleElementsMap;
 }
 
+function getElementsForRole($role)
+{
+    $map = getRoleElementsMap();
+    $elements = $map[strtolower($role)];
+    if(is_array($elements)) {
+        return $elements;
+    }
+    return [];
+} 
 
 // Elements to possible roles
 function getElementRoleMap()
@@ -110,6 +119,16 @@ function getElementRoleMap()
     ];
     return $elementRoleMap;
 }
+
+function getRolesForElement($tagName)
+{
+    $map = getElementRoleMap();
+    $roles = $map[strtolower($tagName)];
+    if(is_array($roles)) {
+        return $roles;
+    }
+    return [];
+} 
 
 // Check if a role supports computing accessible name from content (child nodes)
 function isRoleSupportingNameFromContent($role)
