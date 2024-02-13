@@ -66,12 +66,110 @@ function getDocument($node)
     return $doc;
 }
 
-function computeAccessibleName(\DOMNode $node) 
+function computeAccessibleName(\DOMNode $node, $traversal = []) 
 {
-
     // TODO See https://www.w3.org/TR/accname-1.1/#mapping_additional_nd
-    $name = $node->textContent;
-    return $name;
+    $dom = getDocument($node);    
+    $xpath = new \DOMXPath($dom);
+
+    $tagName = strtolower($node->tagName);
+    $accName = "";
+
+    if ($node instanceof \DOMText) {
+        $text = normalize($node->textContent);
+        if(strlen($text)>0) {
+            return $text;
+        }  
+    }
+
+    if($node->hasAttribute("aria-labelledby") && $traversal['aria-labelledby']==0) {
+
+        $id = $node->getAttribute("aria-labelledby");   
+        $refNameNodes = $xpath->query("//*[@id='".$id."']");
+        $accNames = [];
+        $traversal['aria-labelledby']++;
+        foreach($refNameNodes as $refNameNode) {
+            $accNames[] = normalize(computeAccessibleName($refNameNode, $traversal));
+        }
+        $traversal['aria-labelledby']--;
+        // join with space according to doc 2.B.ii.c
+        $joinedName = trim(implode(" ", $accNames));
+        if(strlen($joinedName)>0) {
+            return $joinedName;
+        }   
+    }
+
+
+
+    if($node->hasAttribute("aria-label")) {
+        $label = normalize($node->getAttribute("aria-label"));
+        if(strlen($label)>0) {
+            return $label;
+        }   
+    }
+
+    if($node->hasAttribute("id") && $traversal['label']==0) {
+        $id = $node->getAttribute("id");   
+        $labelNodes = $xpath->query("//label[@for='".$id."']");
+        $accNames = [];
+        $traversal['label']++;
+        foreach($labelNodes as $labelNode) {
+            $accNames[] = normalize(computeAccessibleName($labelNode, $traversal));
+        }
+        $traversal['label']--;
+        // join with space according to doc 2.B.ii.c
+        $joinedName = trim(implode(" ", $accNames));
+        if(strlen($joinedName)>0) {
+            return $joinedName;
+        }   
+    }
+
+    $role = '';
+    if($node->hasAttribute("role")) {
+        $role = $node->getAttribute("role");
+    } else {
+        // TODO get implicit role from tagName
+        $roles = \pest\aria\getElementRoleMap()[$tagName];
+        foreach($roles as $roleData) {
+            if (isset($roleData["attribute"])) {
+                $attrName = $roleData["attribute"]["name"];
+                $attrValue = $roleData["attribute"]["value"];
+                if ($node->getAttribute($attrName) == $attrValue) {
+                    $role = $roleData["role"];
+                    break;
+                }
+            } else {
+                $role = $roleData["role"];
+                break;
+            }
+        }
+    }
+    if (\pest\aria\isRoleSupportingNameFromContent($role)) {
+        $accNames = [];
+        foreach($node->childNodes as $childNode) {
+            $accNames[] = normalize(computeAccessibleName($childNode, $traversal));
+        }
+        $joinedName = trim(implode(" ", $accNames));
+        if(strlen($joinedName)>0) {
+            return $joinedName;
+        }   
+    }
+
+    if($node->hasAttribute("title")) {
+        $title = $node->getAttribute("title");
+        if(strlen($title)>0) {
+            return $title;
+        }  
+    }
+
+    if($tagName == "img" && $node->hasAttribute("alt")) {
+        $alt = $node->getAttribute("alt");
+        if(strlen($alt)>0) {
+            return $alt;
+        }  
+    }
+
+    return "";
 }
 
 function getBoolAttribute($element, $attr)
@@ -106,7 +204,7 @@ function getSelectValue($select, $options = [])
     $displayValue = isset($options['displayValue']) ? $options['displayValue'] : false;
     //$multiple = $select->hasAttribute("multiple");
     $multiple = getBoolAttribute($select, "multiple");
-    $dom = $select->ownerDocument;    
+    $dom = getDocument($select);    
     $xpath = new \DOMXPath($dom);
     
     $optionNodes = iterator_to_array($xpath->query("//option", $select));
