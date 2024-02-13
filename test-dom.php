@@ -249,6 +249,38 @@ HTML;
 });
 
 
+
+test("cssSelectorToXPath", function() {
+
+    $q = \pest\utils\cssSelectorToXPath(".red.blue");
+    expect($q)->toMatch("//*[contains(concat(' ',normalize-space(@class),' '),' red ')][contains(concat(' ',normalize-space(@class),' '),' blue ')]");
+
+    $q = \pest\utils\cssSelectorToXPath("#my-id");
+    expect($q)->toMatch("//*[@id='my-id']");
+
+    $q = \pest\utils\cssSelectorToXPath("a#my-link");
+    expect($q)->toMatch("//a[@id='my-link']");
+
+    $q = \pest\utils\cssSelectorToXPath("a#my-link.important");
+    expect($q)->toMatch("//a[@id='my-link'][contains(concat(' ',normalize-space(@class),' '),' important ')]");
+
+    $q = \pest\utils\cssSelectorToXPath("input");
+    expect($q)->toMatch("//input");
+
+    $q = \pest\utils\cssSelectorToXPath("script, style");
+    expect($q)->toMatch("//script|//style");
+
+    $q = \pest\utils\cssSelectorToXPath("div.button");
+    expect($q)->toMatch("//div[contains(concat(' ',normalize-space(@class),' '),' button ')]");
+
+    $q = \pest\utils\cssSelectorToXPath("ul.menu li.item");
+    expect($q)->toMatch("//ul[contains(concat(' ',normalize-space(@class),' '),' menu ')]//li[contains(concat(' ',normalize-space(@class),' '),' item ')]");
+    
+    $q = \pest\utils\cssSelectorToXPath("div > span.msg");
+    expect($q)->toMatch("//div/span[contains(concat(' ',normalize-space(@class),' '),' msg ')]");
+});
+
+
 test("accessible names: read more", function() {
     $src = <<<HTML
 <h2 id="bees-heading">7 ways you can help save the bees</h2>

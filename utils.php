@@ -376,26 +376,63 @@ function getFirstNonEmptyChildNode($node)
 function cssSelectorToXPath($selector) 
 {
     // TODO Handle more complicated patterns
+    
+    // Collapse and trim whitespace
+    $selector = normalize($selector);
 
-    $parts = explode(",", $selector);
+    $pathAlts = explode(",", $selector);
     $xpathParts = [];
-    foreach($parts as $part) {
-        $elem = "*";
-        $part = trim($part);
-        $attr = "";
-        if ($part[0] == ".") {
-            // class
-            $class = substr($part, 1); 
-            $attr = "[contains(concat(' ',@class,' '),' ".$class." ')]";
-        } else if ($part[0] == "#") {
-            // id
-            $id = substr($part, 1);
-            $attr = "[@id='".$id."']";
-        } else {
-            $elem = $part;
-        }
+    foreach($pathAlts as $pathAlt) {
+        $pathAlt = trim($pathAlt);
 
-        $xpathParts[] = "//".$elem.$attr;
+        // Split paths on space to get the different parts
+        $parts = explode(" ", $pathAlt);
+
+        $partPath = "";
+        $pathSep = "//";
+        foreach($parts as $part) {
+            $part = trim($part);
+            if ($part == ">") {
+                $pathSep = "/";
+                continue;
+            }
+
+            $elemparts = explode(".", $part); 
+            $elem = $elemparts[0]; // First is the elem
+
+            $hashPos = stripos($elem, "#");
+            $attr = "";
+            if ($hashPos !== false) {
+                $id = substr($elem, $hashPos + 1);
+                $elem = substr($elem, 0, $hashPos);
+                $attr .= "[@id='".$id."']";
+                
+            }
+            if($elem == "") {
+                $elem = "*";
+            }
+            $classes = array_slice($elemparts, 1);
+            //}
+
+            foreach($classes as $class) {
+                $hashPos = stripos($class, "#");
+                $id = "";
+                if ($hashPos !== false) {
+                    $id = substr($class, $hashPos + 1);
+                    $class = substr($class, 0, $hashPos);   
+                }
+                if($class != "") { 
+                    $attr .= "[contains(concat(' ',normalize-space(@class),' '),' ".$class." ')]";
+                }
+                if($id != "") {
+                    $attr .= "[@id='".$id."']";
+                }
+            }
+
+            $partPath .= $pathSep.$elem.$attr;
+            $pathSep = "//"; // reset to //. We need > to set to /
+        }
+        $xpathParts[] = $partPath;
     }
 
     $xpath = implode("|", $xpathParts);
