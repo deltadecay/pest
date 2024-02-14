@@ -8,8 +8,10 @@ require_once(__DIR__."/../pest-dom.php");
 use \Exception;
 
 use function \pest\test;
-use function \pest\expect;
 use \pest\dom;
+// Make sure to use the dom specific expect
+use function \pest\dom\expect;
+
 
 $src = <<<HTML
 <div>
@@ -252,31 +254,31 @@ HTML;
 
 test("cssSelectorToXPath", function() {
 
-    $q = \pest\utils\cssSelectorToXPath(".red.blue");
+    $q = \pest\dom\cssSelectorToXPath(".red.blue");
     expect($q)->toMatch("//*[contains(concat(' ',normalize-space(@class),' '),' red ')][contains(concat(' ',normalize-space(@class),' '),' blue ')]");
 
-    $q = \pest\utils\cssSelectorToXPath("#my-id");
+    $q = \pest\dom\cssSelectorToXPath("#my-id");
     expect($q)->toMatch("//*[@id='my-id']");
 
-    $q = \pest\utils\cssSelectorToXPath("a#my-link");
+    $q = \pest\dom\cssSelectorToXPath("a#my-link");
     expect($q)->toMatch("//a[@id='my-link']");
 
-    $q = \pest\utils\cssSelectorToXPath("a#my-link.important");
+    $q = \pest\dom\cssSelectorToXPath("a#my-link.important");
     expect($q)->toMatch("//a[@id='my-link'][contains(concat(' ',normalize-space(@class),' '),' important ')]");
 
-    $q = \pest\utils\cssSelectorToXPath("input");
+    $q = \pest\dom\cssSelectorToXPath("input");
     expect($q)->toMatch("//input");
 
-    $q = \pest\utils\cssSelectorToXPath("script, style");
+    $q = \pest\dom\cssSelectorToXPath("script, style");
     expect($q)->toMatch("//script|//style");
 
-    $q = \pest\utils\cssSelectorToXPath("div.button");
+    $q = \pest\dom\cssSelectorToXPath("div.button");
     expect($q)->toMatch("//div[contains(concat(' ',normalize-space(@class),' '),' button ')]");
 
-    $q = \pest\utils\cssSelectorToXPath("ul.menu li.item");
+    $q = \pest\dom\cssSelectorToXPath("ul.menu li.item");
     expect($q)->toMatch("//ul[contains(concat(' ',normalize-space(@class),' '),' menu ')]//li[contains(concat(' ',normalize-space(@class),' '),' item ')]");
     
-    $q = \pest\utils\cssSelectorToXPath("div > span.msg");
+    $q = \pest\dom\cssSelectorToXPath("div > span.msg");
     expect($q)->toMatch("//div/span[contains(concat(' ',normalize-space(@class),' '),' msg ')]");
 });
 
@@ -288,8 +290,8 @@ test("accessible names: read more", function() {
 <p><a id="bees-read-more" aria-labelledby="bees-read-more bees-heading">Read more...</a></p>
 HTML;
     $dom = dom\parse($src);
-    $para = \pest\utils\querySelector($dom, "#bees-read-more");
-    $name = \pest\utils\computeAccessibleName($para);
+    $para = \pest\dom\querySelector($dom, "#bees-read-more");
+    $name = \pest\dom\computeAccessibleName($para);
     expect($name)->toMatch("Read more... 7 ways you can help save the bees");
 });
 
@@ -299,8 +301,8 @@ test("accessible names: hidden", function() {
 <input type="checkbox" role="switch" aria-labelledby="night-mode-label">
 HTML;
     $dom = dom\parse($src);
-    $input = \pest\utils\querySelector($dom, "input");
-    $name = \pest\utils\computeAccessibleName($input);
+    $input = \pest\dom\querySelector($dom, "input");
+    $name = \pest\dom\computeAccessibleName($input);
     expect($name)->toMatch("Night mode");
 });
 
@@ -310,7 +312,7 @@ test("accessible names: no name", function() {
 <input name="code">
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "input"));
     expect($name)->toMatch("");
 });
 
@@ -320,7 +322,7 @@ test("accessible names: placeholder", function() {
   placeholder="One-time code">
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "input"));
     expect($name)->toMatch("One-time code");
 });
 
@@ -331,7 +333,7 @@ test("accessible names: title", function() {
   title="One-time code">
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "input"));
     expect($name)->toMatch("One-time code");
 });
 
@@ -344,7 +346,7 @@ test("accessible names: label implicit", function() {
 </label>
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "input"));
     expect($name)->toMatch("One-time code");
 });
 
@@ -357,7 +359,7 @@ test("accessible names: label explicit embedded", function() {
 </label>
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "input"));
     expect($name)->toMatch("One-time code");
 });
 
@@ -370,7 +372,7 @@ test("accessible names: label explicit", function() {
 
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "input"));
     expect($name)->toMatch("One-time code");
 });
 
@@ -384,7 +386,7 @@ test("accessible names: aria-label", function() {
 </label>
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "input"));
     expect($name)->toMatch("One-time code");
 });
 
@@ -403,7 +405,7 @@ test("accessible names: aria-labelledby", function() {
 </p>
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "input"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "input"));
     expect($name)->toMatch("one-time code");
 });
 
@@ -413,7 +415,7 @@ test("accessible names: traverse button", function() {
 <button>Move to <img src="bin.svg" alt="trash"></button>
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "button"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "button"));
     expect($name)->toMatch("Move to trash");
 });
 
@@ -425,6 +427,6 @@ test("accessible names: complex traversal", function() {
 </div>
 HTML;
     $dom = dom\parse($src);
-    $name = \pest\utils\computeAccessibleName(\pest\utils\querySelector($dom, "button"));
+    $name = \pest\dom\computeAccessibleName(\pest\dom\querySelector($dom, "button"));
     expect($name)->toMatch("Remove meeting: Daily status report");
 });

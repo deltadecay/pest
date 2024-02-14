@@ -3,22 +3,14 @@
 namespace pest;
 
 require_once(__DIR__."/utils.php");
+require_once(__DIR__."/testfail.php");
 
-use \Exception;
 
-
-class TestFailException extends Exception 
-{ 
-    public function __construct($value, $expect, $negate=false)
-    {
-        parent::__construct("Expected ".($negate?"not ":"").var_export($expect, true)." but got ".var_export($value, true));
-    }
-}
 
 class Expectation
 {
-    private $negate = false;
-    private $value;
+    protected $negate = false;
+    protected $value;
 
     public function __construct($value) 
     {
@@ -31,7 +23,7 @@ class Expectation
         return $this;
     }
 
-    private function holds($boolexpr) 
+    protected function holds($boolexpr) 
     {
         return $this->negate ? !$boolexpr : $boolexpr;
     }
@@ -145,7 +137,7 @@ class Expectation
             //"collapseWhitespace" => false,
             "normalizer" => \pest\utils\noNormalizer(),
         ];
-        $hasMatch = utils\hasTextMatch($pattern, $this->value, $options);
+        $hasMatch = \pest\utils\hasTextMatch($pattern, $this->value, $options);
 
         if(!$this->holds($hasMatch))
         {
@@ -157,7 +149,7 @@ class Expectation
     {
         $fun = $this->value;
         if (!is_callable($fun)) {
-            throw new Exception("The value to expect(...) should be a function which calls your function");
+            throw new \Exception("The value to expect(...) should be a function which calls your function");
         }
         $hasMatch = false;
 
@@ -165,14 +157,14 @@ class Expectation
         $expectedMsg = 'throw';
         try { 
             $fun();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $thrownExceptionMsg = get_class($e)."(".$e->getMessage().")";
             if (isset($error)) {
                 if(is_string($error)) {
                     $expectedMsg = $error;
-                    $hasMatch = utils\hasTextMatch($error, $e->getMessage());
+                    $hasMatch = \pest\utils\hasTextMatch($error, $e->getMessage());
                 } else {
-                    if($error instanceof Exception) {
+                    if($error instanceof \Exception) {
                         $expectedMsg = get_class($error)."(".$error->getMessage().")";
                         $hasMatch = $e->getMessage() == $error->getMessage() &&
                             get_class($e) == get_class($error);
@@ -316,86 +308,6 @@ class Expectation
     }
 
 
-    // Dom specific matchers
-
-    public function toBeInTheDocument() 
-    {
-        if(($this->value instanceof \DOMNode) || $this->value == null) {
-            if(!$this->holds($this->value != null))
-            {
-                throw new TestFailException(null, "to be in document", $this->negate);
-            }
-        } else {
-            throw new TestFailException($this->value, "DOMNode", false);
-        }
-    }
-
-    public function toHaveTextContent($pattern) 
-    {
-        if(($this->value instanceof \DOMNode) || $this->value == null) {
-            $text = null;
-            if($this->value != null) {
-                $text = $this->value->textContent;   
-            }
-            $hasMatch = utils\hasTextMatch($pattern, $text);
-            if(!$this->holds($hasMatch))
-            {
-                throw new TestFailException(null, $pattern, $this->negate);
-            }
-        } else {
-            throw new TestFailException($this->value, "DOMNode", false);
-        }
-    }
-    
-    public function toHaveClass($className) 
-    {
-        if(($this->value instanceof \DOMElement) || $this->value == null) {
-            $classes = [];
-            if($this->value != null) {
-                //$nodeClasses = $this->value->attributes->getNamedItem("class")->textContent;
-                $nodeClassAttr = $this->value->getAttribute("class");
-                $classes = explode(" ", $nodeClassAttr); 
-            }
-            if(!$this->holds(in_array($className, $classes)))
-            {
-                throw new TestFailException(implode(" ", $classes), "class $className", $this->negate);
-            }
-        } else {
-            throw new TestFailException($this->value, "DOMElement", false);
-        }
-    }
-
-    public function toHaveValue($expected)
-    {
-        if(($this->value instanceof \DOMNode) || $this->value == null) {
-            $nodeValue = null;
-            if($this->value != null) {
-                $nodeValue = \pest\utils\getElementValue($this->value);
-            }
-            if(!$this->holds($nodeValue === $expected))
-            {
-                throw new TestFailException($nodeValue , $expected, $this->negate);
-            }
-        } else {
-            throw new TestFailException($this->value, "DOMNode", false);
-        }
-    }
-
-    public function toBeChecked()
-    {
-        if(($this->value instanceof \DOMElement) || $this->value == null) {
-            $checked = false;
-            if($this->value != null) {
-                $checked = \pest\utils\getBoolAttribute($this->value, "checked");
-            }
-            if(!$this->holds($checked))
-            {
-                throw new TestFailException($checked , "to be checked", $this->negate);
-            }
-        } else {
-            throw new TestFailException($this->value, "DOMElement", false);
-        }
-    }
 
 }
 
