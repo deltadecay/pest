@@ -1,6 +1,6 @@
 <?php 
 
-namespace ExampleTests;
+namespace PestTests;
 
 require_once(__DIR__."/../pest.php");
 

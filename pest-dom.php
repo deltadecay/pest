@@ -15,23 +15,11 @@ function expect($value)
     return new DOMExpectation($value);
 }
 
-function parse($src)
-{
-    $dom = loadDOM($src);
-    return $dom;
-}
-
-function debug($dom) 
-{
-    $str = outputDOM($dom);
-    echo $str.PHP_EOL;
-}
-
 
 // Returns a list of DOMNodes matching role
 function queryAllByRole($container, $role, $options = array())
 {
-    $dom = \pest\dom\getDocument($container);
+    $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
     $found = [];
 
@@ -124,7 +112,7 @@ function queryAllByText($container, $pattern, $options = array())
     // TODO use selector to constrain the match
     //$selector = isset($options['selector']) ? $options['selector'] : "*";
 
-    $dom = \pest\dom\getDocument($container);
+    $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
 
     $ignoredNodes = [];
@@ -184,7 +172,7 @@ function getByText($container, $pattern, $options = array())
 // Returns a list of DOMNodes with matching data-testid
 function queryAllByTestId($container, $pattern, $options = array())
 {
-    $dom = \pest\dom\getDocument($container);
+    $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute data-testid
@@ -231,7 +219,7 @@ function getByTestId($container, $pattern, $options = array())
 // Returns a list of DOMNodes with matching title attribute or title in svg
 function queryAllByTitle($container, $pattern, $options = array())
 {
-    $dom = \pest\dom\getDocument($container);
+    $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute title
@@ -293,7 +281,7 @@ function getByTitle($container, $pattern, $options = array())
 // Returns a list of DOMNodes with matching alt attribute
 function queryAllByAltText($container, $pattern, $options = array())
 {
-    $dom = \pest\dom\getDocument($container);
+    $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute alt 
@@ -347,9 +335,9 @@ function queryAllByLabelText($container, $pattern, $options = array())
     // TODO use selector to constrain the match
     //$selector = isset($options['selector']) ? $options['selector'] : "*";
 
-    $validInputElements = ["input","select","textarea","meter","progress"];
+    //$validInputElements = ["input","select","textarea","meter","progress"];
 
-    $dom = \pest\dom\getDocument($container);
+    $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
     // Find all labels with text 
     $labelNodes = $xpath->query("//label[string-length(text())>0]", $container);
@@ -368,7 +356,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
                 $inputNodes = $xpath->query("//*[@id='".$for."']");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
-                    if(!in_array($inputNode, $found, true) && in_array($inputTagName, $validInputElements)) {
+                    if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
                         $found[] = $inputNode;
                     }
                 }
@@ -380,7 +368,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
                 $inputNodes = $xpath->query("//*[contains(concat(' ',normalize-space(@aria-labelledby),' '),' ".$id." ')]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
-                    if(!in_array($inputNode, $found, true) && in_array($inputTagName, $validInputElements)) {
+                    if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
                         $found[] = $inputNode;
                     }
                 }
@@ -390,7 +378,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
             $inputNodes = $xpath->query("//*", $labelNode);
             foreach($inputNodes as $inputNode) {
                 $inputTagName = strtolower($inputNode->tagName);
-                if(!in_array($inputNode, $found, true) && in_array($inputTagName, $validInputElements)) {
+                if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
                     $found[] = $inputNode;
                 }
             }
@@ -442,7 +430,7 @@ function getByLabelText($container, $pattern, $options = array())
 // Returns a list of DOMNodes with matching placeholder
 function queryAllByPlaceholderText($container, $pattern, $options = array())
 {
-    $dom = \pest\dom\getDocument($container);
+    $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
 
     // Find all input/textarea that have attribute placeholder
@@ -489,7 +477,7 @@ function getByPlaceholderText($container, $pattern, $options = array())
 // Returns a list of DOMNodes with matching display value
 function queryAllByDisplayValue($container, $pattern, $options = array())
 {
-    $dom = \pest\dom\getDocument($container);
+    $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
 
     // Find all input/textarea 

@@ -7,7 +7,7 @@ require_once(__DIR__."/../utils.php");
 
 use function \pest\utils\normalize;
 
-function loadDOM($src) 
+function parse($src) 
 {
     $id = "_pest_root";
     //$dom = new \DOMDocument();
@@ -38,13 +38,13 @@ function loadDOM($src)
     return $dom;
 }
 
-function outputDOM(\DOMDocument $dom)
+function debug(\DOMDocument $dom)
 {
     $id = "_pest_root";
     $dom->formatOutput = true;
     // Remove the dummy root that we added in parse
     $str = substr($dom->saveHtml(), strlen("<div id=\"$id\">"), -(strlen("</div>")+1));
-    return $str;
+    echo $str;
 }
 
 
@@ -81,12 +81,15 @@ function expectOnlyOne($found, $type, $pattern)
 }
 
 
-function getDocument($node)
+function getDocument(\DOMNode $node)
 {
     if($node instanceof \DOMDocument) {
         $doc = $node;
     } else {
         $doc = $node->ownerDocument;    
+    }
+    if($doc == null) {
+        throw new \Exception("No owner document for ".$node->tagName);
     }
     return $doc;
 }
@@ -160,8 +163,7 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
 
     if($node->parentNode != null && $node->parentNode->tagName == "label") {
         // If a label is the direct parent node and current node is a form input
-        $validInputElements = ["input","select","textarea","meter","progress"];
-        if(in_array($tagName, $validInputElements)) {
+        if(isValidInputElements($tagName)) {
             $accNames = [];
             $traversal['source'] = $node;
             $traversal['label']++;
@@ -181,7 +183,7 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
     if($node->hasAttribute("role")) {
         $role = $node->getAttribute("role");
     } else {
-        $roles = \pest\dom\getRolesForElement($tagName);
+        $roles = getRolesForElement($tagName);
         foreach($roles as $roleData) {
             if (isset($roleData["attribute"])) {
                 $attrName = $roleData["attribute"]["name"];
@@ -196,7 +198,7 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
             }
         }
     }
-    if (\pest\dom\isRoleSupportingNameFromContent($role)) {
+    if (isRoleSupportingNameFromContent($role)) {
         $accNames = [];
         foreach($node->childNodes as $childNode) {
             $accNames[] = normalize(computeAccessibleName($childNode, $traversal));
@@ -248,7 +250,17 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
     return "";
 }
 
-function isElementHidden($node)
+function isValidInputElements($node)
+{
+    if($node instanceof \DOMNode) {
+        $node = strtolower($node->tagName);
+    } else {
+        $node = strtolower("$node");
+    }
+    return in_array($node, ["input", "select", "textarea", "meter", "progress"]);
+}
+
+function isElementHidden(\DOMElement $node)
 {
     // Check style for css which hides thee element
     $style = $node->getAttribute("style");
@@ -266,7 +278,7 @@ function isElementHidden($node)
     return getBoolAttribute($node, "hidden");
 }
 
-function getBoolAttribute($element, $attr)
+function getBoolAttribute(\DOMElement $element, $attr)
 {
     if($element->hasAttribute($attr)) {
         // attr selected returns 'selected'
@@ -278,7 +290,7 @@ function getBoolAttribute($element, $attr)
     return false;
 }
 
-function getInputValue($input) 
+function getInputValue(\DOMElement $input) 
 {
     $type = strtolower($input->getAttribute("type"));
     if ($type == "number") {
@@ -293,7 +305,7 @@ function getInputValue($input)
     return $value;
 }
 
-function getSelectValue($select, $options = [])
+function getSelectValue(\DOMElement $select, $options = [])
 {
     $displayValue = isset($options['displayValue']) ? $options['displayValue'] : false;
     //$multiple = $select->hasAttribute("multiple");
@@ -396,6 +408,10 @@ function getFirstNonEmptyChildNode($node)
 function cssSelectorToXPath($selector) 
 {
     // TODO Handle more complicated patterns
+    // Doesn't support: attributes within []. Only supports classes and id refixed with . and #
+    // Doesn't support: sibling selection with + ~ 
+    // Doesn't support: :selectors eg. :last
+    // See the tests for examples
     
     // Collapse and trim whitespace
     $selector = normalize($selector);
@@ -460,7 +476,7 @@ function cssSelectorToXPath($selector)
 }
 
 
-function querySelectorAll($node, $selector) 
+function querySelectorAll(\DOMNode $node, $selector) 
 {
     $dom = getDocument($node);    
     $xpath = new \DOMXPath($dom);
@@ -471,7 +487,7 @@ function querySelectorAll($node, $selector)
 }
 
 
-function querySelector($node, $selector) 
+function querySelector(\DOMNode $node, $selector) 
 {
     $elements = querySelectorAll($node, $selector);
     if(count($elements) > 0) {
