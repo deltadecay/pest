@@ -6,7 +6,7 @@ require_once(__DIR__."/src/dom/dom.php");
 require_once(__DIR__."/src/dom/domexpectation.php");
 
 use \DOMXPath;
-use \Exception;
+
 
 
 function expect($value)

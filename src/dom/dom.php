@@ -6,6 +6,7 @@ require_once(__DIR__."/aria.php");
 require_once(__DIR__."/../utils.php");
 
 use function \pest\utils\normalize;
+use \Exception;
 
 function parse($src) 
 {
@@ -14,9 +15,9 @@ function parse($src)
     //$dom->loadHTML($src);  
     libxml_use_internal_errors(true);
 
-    // Load content to a dummy root div and specify encoding with a meta tag
+    // Load content to a dummy root and specify encoding with a meta tag
     $temp_dom = new \DOMDocument();
-    $loadOk = $temp_dom->loadHTML("<meta http-equiv='Content-Type' content='charset=utf-8' /><div id=\"$id\">$src</div>");
+    $loadOk = $temp_dom->loadHTML("<meta http-equiv='Content-Type' content='charset=utf-8' /><dummyroot id=\"$id\">$src</dummyroot>");
     /*foreach(libxml_get_errors() as $error) {
         echo "\t".$error->message.PHP_EOL;
     }*/
@@ -30,7 +31,7 @@ function parse($src)
     // As loadHTML() adds a DOCTYPE as well as <html> and <body> tag, 
     // create another DOMDocument and import just the nodes we want
     $dom = new \DOMDocument();
-    $first_div = $temp_dom->getElementsByTagName('div')[0];
+    $first_div = $temp_dom->getElementsByTagName('dummyroot')[0];
     // Imports and returns the copy
     $first_div_node = $dom->importNode($first_div, true);
     // Add it to the new dom
@@ -43,12 +44,12 @@ function debug(\DOMDocument $dom)
     $id = "_pest_root";
     $dom->formatOutput = true;
     // Remove the dummy root that we added in parse
-    $str = substr($dom->saveHtml(), strlen("<div id=\"$id\">"), -(strlen("</div>")+1));
+    $str = substr($dom->saveHtml(), strlen("<dummyroot id=\"$id\">"), -(strlen("</dummyroot>")+1));
     echo $str;
 }
 
 
-function expectAtMostOne($found, $type, $pattern)
+function expectAtMostOne($found, $type="some", $pattern="value")
 {
     $n = count($found);
     if ($n == 0) {
@@ -60,7 +61,7 @@ function expectAtMostOne($found, $type, $pattern)
     throw new Exception("Expected at most one element with $type $pattern, but found $n.");
 }
 
-function expectAtleastOne($found, $type, $pattern)
+function expectAtleastOne($found, $type="some", $pattern="value")
 {
     if(count($found) == 0) {
         throw new Exception("Expected atleast one element with $type $pattern, but found none.");
@@ -68,7 +69,7 @@ function expectAtleastOne($found, $type, $pattern)
     return $found;
 }
 
-function expectOnlyOne($found, $type, $pattern)
+function expectOnlyOne($found, $type="some", $pattern="value")
 {
     $n = count($found);
     if ($n == 0) {

@@ -11,6 +11,44 @@ use function \pest\expect;
 use \pest\dom;
 
 
+test("parse", function() {
+    $src = <<<HTML
+    <div id="helloworld">Hello world!</div>
+HTML;
+    $dom = dom\parse($src);
+    expect($dom instanceof \DOMDocument)->toBeTruthy();
+    $hello = $dom->getElementById("helloworld");
+    expect($hello)->not()->toBeNull();
+    expect($hello->textContent)->toMatch("Hello world!");
+
+    expect(\pest\dom\getDocument($hello))->toBe($dom);
+    expect(\pest\dom\getDocument($dom))->toBe($dom);
+
+    $p = new \DOMElement("p");
+    expect(function() use($p) { \pest\dom\getDocument($p); })->toThrow("/No owner document/i");
+});
+
+
+test("expectAtMostOne", function() {
+    expect(\pest\dom\expectAtMostOne([]))->toBeNull();
+    expect(\pest\dom\expectAtMostOne(["one"]))->toBeEqual("one");
+    expect(function() { \pest\dom\expectAtMostOne(["one", "two"]); })->toThrow();
+});
+
+test("expectAtleastOne", function() {
+    expect(function() { \pest\dom\expectAtleastOne([]); })->toThrow();
+    expect(\pest\dom\expectAtleastOne(["one"]))->toBe(["one"]);
+    expect(\pest\dom\expectAtleastOne(["one","two"]))->toBe(["one","two"]);
+});
+
+test("expectOnlyOne", function() {
+    expect(function() { \pest\dom\expectOnlyOne([]); })->toThrow();
+    expect(\pest\dom\expectOnlyOne(["one"]))->toBe("one");
+    expect(function() { \pest\dom\expectOnlyOne(["one","two"]); })->toThrow();
+});
+
+
+
 
 test("cssSelectorToXPath", function() {
 
@@ -41,6 +79,24 @@ test("cssSelectorToXPath", function() {
     $q = \pest\dom\cssSelectorToXPath("div > span.msg");
     expect($q)->toMatch("//div/span[contains(concat(' ',normalize-space(@class),' '),' msg ')]");
 });
+
+test("querySelector", function() {
+    $src = <<<HTML
+    <div id="helloworld">Hello <span class="red bold">world!</span></div>
+    <span>Another <span class="bold">span</span></span>
+HTML;
+    $dom = dom\parse($src);
+    expect(\pest\dom\querySelectorAll($dom, "div"))->toHaveCount(1);
+    expect(\pest\dom\querySelectorAll($dom, "span"))->toHaveCount(3);
+    expect(\pest\dom\querySelector($dom, "#helloworld")->tagName)->toBe("div");
+    expect(\pest\dom\querySelector($dom, "#helloworld")->textContent)->toBe("Hello world!");
+    expect(\pest\dom\querySelector($dom, "div .red")->textContent)->toBe("world!");
+    expect(\pest\dom\querySelector($dom, "div .bold")->textContent)->toBe("world!");
+    expect(\pest\dom\querySelectorAll($dom, ".bold"))->toHaveCount(2);
+    expect(\pest\dom\querySelector($dom, "span span")->textContent)->toBe("span");
+
+});
+
 
 
 
