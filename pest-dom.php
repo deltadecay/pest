@@ -105,10 +105,6 @@ function queryByRole($container, $role, $options = array())
 function getAllByRole($container, $role, $options = array())
 {
     $found = queryAllByRole($container, $role, $options);
-    /*if(count($found) == 0) {
-        throw new Exception("Expected atleast one element with role $role, but found none.");
-    }
-    return $found;*/
     return expectAtleastOne($found, "role", $role);
 }
 
@@ -116,14 +112,6 @@ function getAllByRole($container, $role, $options = array())
 function getByRole($container, $role, $options = array())
 {
     $found = queryAllByRole($container, $role, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        throw new Exception("Expected one element with role $role, but found none.");
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected one element with role $role, but found $n.");*/
     return expectOnlyOne($found, "role", $role);
 }
 
@@ -172,14 +160,6 @@ function queryAllByText($container, $pattern, $options = array())
 function queryByText($container, $pattern, $options = array())
 {
     $found = queryAllByText($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        return null;
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected at most one element with text $pattern, but found $n.");*/
     return expectAtMostOne($found, "text", $pattern);
 }
 
@@ -187,10 +167,6 @@ function queryByText($container, $pattern, $options = array())
 function getAllByText($container, $pattern, $options = array())
 {
     $found = queryAllByText($container, $pattern, $options);
-    /*if(count($found) == 0) {
-        throw new Exception("Exepected atleast one element with text $pattern, but found none.");
-    }
-    return $found;*/
     return expectAtleastOne($found, "text", $pattern);
 }
 
@@ -198,14 +174,6 @@ function getAllByText($container, $pattern, $options = array())
 function getByText($container, $pattern, $options = array())
 {
     $found = queryAllByText($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        throw new Exception("Expected one element with text $pattern, but found none.");
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected one element with text $pattern, but found $n.");*/
     return expectOnlyOne($found, "text", $pattern);
 }
 
@@ -242,14 +210,6 @@ function queryAllByTestId($container, $pattern, $options = array())
 function queryByTestId($container, $pattern, $options = array())
 {
     $found = queryAllByTestId($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        return null;
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected at most one element with data-testid $pattern, but found $n.");*/
     return expectAtMostOne($found, "data-testid", $pattern);
 }
 
@@ -257,10 +217,6 @@ function queryByTestId($container, $pattern, $options = array())
 function getAllByTestId($container, $pattern, $options = array())
 {
     $found = queryAllByTestId($container, $pattern, $options);
-    /*if(count($found) == 0) {
-        throw new Exception("Exepected atleast one element with data-testid $pattern, but found none.");
-    }
-    return $found;*/
     return expectAtleastOne($found, "data-testid", $pattern);
 }
 
@@ -268,14 +224,6 @@ function getAllByTestId($container, $pattern, $options = array())
 function getByTestId($container, $pattern, $options = array())
 {
     $found = queryAllByTestId($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        throw new Exception("Expected one element with data-testid $pattern, but found none.");
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected one element with data-testid $pattern, but found $n.");*/
     return expectOnlyOne($found, "data-testid", $pattern);
 }
 
@@ -322,14 +270,6 @@ function queryAllByTitle($container, $pattern, $options = array())
 function queryByTitle($container, $pattern, $options = array())
 {
     $found = queryAllByTitle($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        return null;
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected at most one element with title $pattern, but found $n.");*/
     return expectAtMostOne($found, "title", $pattern);
 }
 
@@ -337,10 +277,6 @@ function queryByTitle($container, $pattern, $options = array())
 function getAllByTitle($container, $pattern, $options = array())
 {
     $found = queryAllByTitle($container, $pattern, $options);
-    /*if(count($found) == 0) {
-        throw new Exception("Exepected atleast one element with title $pattern, but found none.");
-    }
-    return $found;*/
     return expectAtleastOne($found, "title", $pattern);
 }
 
@@ -348,14 +284,6 @@ function getAllByTitle($container, $pattern, $options = array())
 function getByTitle($container, $pattern, $options = array())
 {
     $found = queryAllByTitle($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        throw new Exception("Expected one element with title $pattern, but found none.");
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected one element with title $pattern, but found $n.");*/
     return expectOnlyOne($found, "title", $pattern);
 }
 
@@ -394,14 +322,6 @@ function queryAllByAltText($container, $pattern, $options = array())
 function queryByAltText($container, $pattern, $options = array())
 {
     $found = queryAllByAltText($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        return null;
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected at most one element with alt $pattern, but found $n.");*/
     return expectAtMostOne($found, "alt", $pattern);
 }
 
@@ -409,10 +329,6 @@ function queryByAltText($container, $pattern, $options = array())
 function getAllByAltText($container, $pattern, $options = array())
 {
     $found = queryAllByAltText($container, $pattern, $options);
-    /*if(count($found) == 0) {
-        throw new Exception("Exepected atleast one element with alt $pattern, but found none.");
-    }
-    return $found;*/
     return expectAtleastOne($found, "alt", $pattern);
 }
 
@@ -420,14 +336,6 @@ function getAllByAltText($container, $pattern, $options = array())
 function getByAltText($container, $pattern, $options = array())
 {
     $found = queryAllByAltText($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        throw new Exception("Expected one element with alt $pattern, but found none.");
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected one element with alt $pattern, but found $n.");*/
     return expectOnlyOne($found, "alt", $pattern);
 }
 
@@ -512,14 +420,6 @@ function queryAllByLabelText($container, $pattern, $options = array())
 function queryByLabelText($container, $pattern, $options = array())
 {
     $found = queryAllByLabelText($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        return null;
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected at most one element with label $pattern, but found $n.");*/
     return expectAtMostOne($found, "label", $pattern);
 }
 
@@ -527,10 +427,6 @@ function queryByLabelText($container, $pattern, $options = array())
 function getAllByLabelText($container, $pattern, $options = array())
 {
     $found = queryAllByLabelText($container, $pattern, $options);
-    /*if(count($found) == 0) {
-        throw new Exception("Exepected atleast one element with label $pattern, but found none.");
-    }
-    return $found;*/
     return expectAtleastOne($found, "label", $pattern);
 }
 
@@ -538,14 +434,6 @@ function getAllByLabelText($container, $pattern, $options = array())
 function getByLabelText($container, $pattern, $options = array())
 {
     $found = queryAllByLabelText($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        throw new Exception("Expected one element with label $pattern, but found none.");
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected one element with label $pattern, but found $n.");*/
     return expectOnlyOne($found, "label", $pattern);
 }
 
@@ -580,14 +468,6 @@ function queryAllByPlaceholderText($container, $pattern, $options = array())
 function queryByPlaceholderText($container, $pattern, $options = array())
 {
     $found = queryAllByPlaceholderText($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        return null;
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected at most one element with placeholder $pattern, but found $n.");*/
     return expectAtMostOne($found, "placeholder", $pattern);
 }
 
@@ -595,10 +475,6 @@ function queryByPlaceholderText($container, $pattern, $options = array())
 function getAllByPlaceholderText($container, $pattern, $options = array())
 {
     $found = queryAllByPlaceholderText($container, $pattern, $options);
-    /*if(count($found) == 0) {
-        throw new Exception("Exepected atleast one element with placeholder $pattern, but found none.");
-    }
-    return $found;*/
     return expectAtleastOne($found, "placeholder", $pattern);
 }
 
@@ -606,14 +482,6 @@ function getAllByPlaceholderText($container, $pattern, $options = array())
 function getByPlaceholderText($container, $pattern, $options = array())
 {
     $found = queryAllByPlaceholderText($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        throw new Exception("Expected one element with placeholder $pattern, but found none.");
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected one element with placeholder $pattern, but found $n.");*/
     return expectOnlyOne($found, "placeholder", $pattern);
 }
 
@@ -661,14 +529,6 @@ function queryAllByDisplayValue($container, $pattern, $options = array())
 function queryByDisplayValue($container, $pattern, $options = array())
 {
     $found = queryAllByDisplayValue($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        return null;
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected at most one element with display value $pattern, but found $n.");*/
     return expectAtMostOne($found, "display value", $pattern);
 }
 
@@ -676,10 +536,6 @@ function queryByDisplayValue($container, $pattern, $options = array())
 function getAllByDisplayValue($container, $pattern, $options = array())
 {
     $found = queryAllByDisplayValue($container, $pattern, $options);
-    /*if(count($found) == 0) {
-        throw new Exception("Exepected atleast one element with display value $pattern, but found none.");
-    }
-    return $found;*/
     return expectAtleastOne($found, "display value", $pattern);
 }
 
@@ -687,13 +543,6 @@ function getAllByDisplayValue($container, $pattern, $options = array())
 function getByDisplayValue($container, $pattern, $options = array())
 {
     $found = queryAllByDisplayValue($container, $pattern, $options);
-    /*$n = count($found);
-    if ($n == 0) {
-        throw new Exception("Expected one element with display value $pattern, but found none.");
-    } 
-    if ($n == 1) {
-        return $found[0];
-    } 
-    throw new Exception("Expected one element with display value $pattern, but found $n.");*/
     return expectOnlyOne($found, "display value", $pattern);
 }
+
