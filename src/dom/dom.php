@@ -48,6 +48,37 @@ function outputDOM(\DOMDocument $dom)
 }
 
 
+function expectAtMostOne($found, $type, $pattern)
+{
+    $n = count($found);
+    if ($n == 0) {
+        return null;
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected at most one element with $type $pattern, but found $n.");
+}
+
+function expectAtleastOne($found, $type, $pattern)
+{
+    if(count($found) == 0) {
+        throw new Exception("Expected atleast one element with $type $pattern, but found none.");
+    }
+    return $found;
+}
+
+function expectOnlyOne($found, $type, $pattern)
+{
+    $n = count($found);
+    if ($n == 0) {
+        throw new Exception("Expected one element with $type $pattern, but found none.");
+    } 
+    if ($n == 1) {
+        return $found[0];
+    } 
+    throw new Exception("Expected one element with $type $pattern, but found $n.");
+}
 
 
 function getDocument($node)
