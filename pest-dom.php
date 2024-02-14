@@ -2,8 +2,8 @@
 
 namespace pest\dom;
 
-require_once(__DIR__."/aria.php");
-require_once(__DIR__."/utils.php");
+require_once(__DIR__."/src/aria.php");
+require_once(__DIR__."/src/utils.php");
 
 use \DOMDocument;
 use \DOMXPath;

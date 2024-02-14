@@ -2,7 +2,7 @@
 
 namespace ExampleTests;
 
-require_once(__DIR__."/pest.php");
+require_once(__DIR__."/../pest.php");
 
 
 use \Exception;

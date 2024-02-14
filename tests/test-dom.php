@@ -1,8 +1,8 @@
 <?php 
 namespace DOMTests;
 
-require_once(__DIR__."/pest.php");
-require_once(__DIR__."/pest-dom.php");
+require_once(__DIR__."/../pest.php");
+require_once(__DIR__."/../pest-dom.php");
 
 
 use \Exception;
