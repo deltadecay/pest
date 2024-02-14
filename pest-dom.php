@@ -2,8 +2,8 @@
 
 namespace pest\dom;
 
-require_once(__DIR__."/src/dom.php");
-require_once(__DIR__."/src/domexpectation.php");
+require_once(__DIR__."/src/dom/dom.php");
+require_once(__DIR__."/src/dom/domexpectation.php");
 
 use \DOMXPath;
 use \Exception;
@@ -44,7 +44,7 @@ function queryAllByRole($container, $role, $options = array())
     }
 
     // Find elements with implicit roles
-    $elementsToFind = \pest\aria\getElementsForRole($role);
+    $elementsToFind = \pest\dom\getElementsForRole($role);
     if(is_array($elementsToFind)) {
         foreach($elementsToFind as $elem) {
             $name = $elem['name'];

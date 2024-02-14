@@ -24,7 +24,7 @@ function noNormalizer()
 
 function getDefaultNormalizer($options = [])
 {
-    return function($str) use($options) { return \pest\utils\normalize($str, $options); };
+    return function($str) use($options) { return normalize($str, $options); };
 }
 
 function hasTextMatch($pattern, $str, $options = []) 

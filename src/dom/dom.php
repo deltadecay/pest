@@ -3,7 +3,7 @@
 namespace pest\dom;
 
 require_once(__DIR__."/aria.php");
-require_once(__DIR__."/utils.php");
+require_once(__DIR__."/../utils.php");
 
 use function \pest\utils\normalize;
 
@@ -150,7 +150,7 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
     if($node->hasAttribute("role")) {
         $role = $node->getAttribute("role");
     } else {
-        $roles = \pest\aria\getRolesForElement($tagName);
+        $roles = \pest\dom\getRolesForElement($tagName);
         foreach($roles as $roleData) {
             if (isset($roleData["attribute"])) {
                 $attrName = $roleData["attribute"]["name"];
@@ -165,7 +165,7 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
             }
         }
     }
-    if (\pest\aria\isRoleSupportingNameFromContent($role)) {
+    if (\pest\dom\isRoleSupportingNameFromContent($role)) {
         $accNames = [];
         foreach($node->childNodes as $childNode) {
             $accNames[] = normalize(computeAccessibleName($childNode, $traversal));

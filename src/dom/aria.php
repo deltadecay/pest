@@ -1,6 +1,6 @@
 <?php
 
-namespace pest\aria;
+namespace pest\dom;
 
 // Lists taken from:
 // https://www.npmjs.com/package/aria-query

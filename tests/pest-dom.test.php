@@ -5,8 +5,6 @@ require_once(__DIR__."/../pest.php");
 require_once(__DIR__."/../pest-dom.php");
 
 
-use \Exception;
-
 use function \pest\test;
 use \pest\dom;
 // Make sure to use the dom specific expect

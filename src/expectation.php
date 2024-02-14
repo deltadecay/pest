@@ -17,6 +17,16 @@ class Expectation
         $this->value = $value;
     }
 
+    public function getValue() 
+    {
+        return $this->value;
+    }
+
+    public function isNegated()
+    {
+        return $this->negate;
+    }
+
     public function not()
     {
         $this->negate = !$this->negate;
