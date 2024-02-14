@@ -4,6 +4,8 @@ namespace pest\dom;
 
 require_once(__DIR__."/expectation.php");
 
+use \pest\TestFailException;
+
 // Extend the regular Expectation with DOM specific matchers
 class DOMExpectation extends \pest\Expectation
 {

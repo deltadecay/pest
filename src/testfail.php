@@ -1,6 +1,6 @@
 <?php
 
-namespace pest\dom;
+namespace pest;
 
 
 class TestFailException extends \Exception 
