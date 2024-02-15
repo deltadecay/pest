@@ -58,67 +58,67 @@ test("readToken", function() {
 test("cssSelectorToXPath", function() {
 
     $q = \pest\dom\cssSelectorToXPath(".red.blue");
-    expect($q)->toMatch("//*[contains(concat(\" \",normalize-space(@class),\" \"),\" red \")][contains(concat(\" \",normalize-space(@class),\" \"),\" blue \")]");
+    expect($q)->toMatch(".//*[contains(concat(\" \",normalize-space(@class),\" \"),\" red \")][contains(concat(\" \",normalize-space(@class),\" \"),\" blue \")]");
 
     $q = \pest\dom\cssSelectorToXPath("#my-id");
-    expect($q)->toMatch("//*[@id=\"my-id\"]");
+    expect($q)->toMatch(".//*[@id=\"my-id\"]");
 
     $q = \pest\dom\cssSelectorToXPath("a#my-link");
-    expect($q)->toMatch("//a[@id=\"my-link\"]");
+    expect($q)->toMatch(".//a[@id=\"my-link\"]");
 
     $q = \pest\dom\cssSelectorToXPath("a#my-link.important");
-    expect($q)->toMatch("//a[@id=\"my-link\"][contains(concat(\" \",normalize-space(@class),\" \"),\" important \")]");
+    expect($q)->toMatch(".//a[@id=\"my-link\"][contains(concat(\" \",normalize-space(@class),\" \"),\" important \")]");
 
     $q = \pest\dom\cssSelectorToXPath("input");
-    expect($q)->toMatch("//input");
+    expect($q)->toMatch(".//input");
 
     $q = \pest\dom\cssSelectorToXPath("script, style,code , pre");
-    expect($q)->toMatch("//script|//style|//code|//pre");
+    expect($q)->toMatch(".//script|.//style|.//code|.//pre");
 
     $q = \pest\dom\cssSelectorToXPath("div.button");
-    expect($q)->toMatch("//div[contains(concat(\" \",normalize-space(@class),\" \"),\" button \")]");
+    expect($q)->toMatch(".//div[contains(concat(\" \",normalize-space(@class),\" \"),\" button \")]");
 
     $q = \pest\dom\cssSelectorToXPath("ul.menu li.item");
-    expect($q)->toMatch("//ul[contains(concat(\" \",normalize-space(@class),\" \"),\" menu \")]//li[contains(concat(\" \",normalize-space(@class),\" \"),\" item \")]");
+    expect($q)->toMatch(".//ul[contains(concat(\" \",normalize-space(@class),\" \"),\" menu \")]//li[contains(concat(\" \",normalize-space(@class),\" \"),\" item \")]");
     
     $q = \pest\dom\cssSelectorToXPath("div > span.msg");
-    expect($q)->toMatch("//div/span[contains(concat(\" \",normalize-space(@class),\" \"),\" msg \")]");
+    expect($q)->toMatch(".//div/span[contains(concat(\" \",normalize-space(@class),\" \"),\" msg \")]");
 
     $q = \pest\dom\cssSelectorToXPath("a[title]");
-    expect($q)->toMatch("//a[@title]");
+    expect($q)->toMatch(".//a[@title]");
 
     $q = \pest\dom\cssSelectorToXPath("a[title=\"hello\"]");
-    expect($q)->toMatch("//a[@title=\"hello\"]");
+    expect($q)->toMatch(".//a[@title=\"hello\"]");
     
     $q = \pest\dom\cssSelectorToXPath("a[title *= \"hello\"]");
-    expect($q)->toMatch("//a[contains(@title,\"hello\")]");
+    expect($q)->toMatch(".//a[contains(@title,\"hello\")]");
 
     $q = \pest\dom\cssSelectorToXPath("a[title^=\"hello\"]");
-    expect($q)->toMatch("//a[starts-with(@title,\"hello\")]");
+    expect($q)->toMatch(".//a[starts-with(@title,\"hello\")]");
 
     $q = \pest\dom\cssSelectorToXPath("a[title|=\"hello\"]");
-    expect($q)->toMatch("//a[@title=\"hello\" or starts-with(@title,\"hello-\")]");
+    expect($q)->toMatch(".//a[@title=\"hello\" or starts-with(@title,\"hello-\")]");
 
     $q = \pest\dom\cssSelectorToXPath("a[title$= \"hello\"]");
-    expect($q)->toMatch("//a[substring(@title,string-length(@title)-(string-length(\"hello\")-1))=\"hello\"]");
+    expect($q)->toMatch(".//a[substring(@title,string-length(@title)-(string-length(\"hello\")-1))=\"hello\"]");
 
     $q = \pest\dom\cssSelectorToXPath("a[title ~=\"hello\"]");
-    expect($q)->toMatch("//a[contains(concat(\" \",normalize-space(@title),\" \"),\" hello \")]");
+    expect($q)->toMatch(".//a[contains(concat(\" \",normalize-space(@title),\" \"),\" hello \")]");
 
     $q = \pest\dom\cssSelectorToXPath("a[href ^= \"https://\"][href$=\".org\"]");
-    expect($q)->toMatch("//a[starts-with(@href,\"https://\")][substring(@href,string-length(@href)-(string-length(\".org\")-1))=\".org\"]");
+    expect($q)->toMatch(".//a[starts-with(@href,\"https://\")][substring(@href,string-length(@href)-(string-length(\".org\")-1))=\".org\"]");
 
     $q = \pest\dom\cssSelectorToXPath("div span[title].blue");
-    expect($q)->toMatch("//div//span[@title][contains(concat(\" \",normalize-space(@class),\" \"),\" blue \")]");
+    expect($q)->toMatch(".//div//span[@title][contains(concat(\" \",normalize-space(@class),\" \"),\" blue \")]");
 
     $q = \pest\dom\cssSelectorToXPath("*[title*=\"hell's\"]");
-    expect($q)->toMatch("//*[contains(@title,\"hell's\")]");
+    expect($q)->toMatch(".//*[contains(@title,\"hell's\")]");
 
     $q = \pest\dom\cssSelectorToXPath("ul li:first-child");
-    expect($q)->toMatch("//ul//li[not(preceding-sibling::*)]");
+    expect($q)->toMatch(".//ul//li[not(preceding-sibling::*)]");
    
     $q = \pest\dom\cssSelectorToXPath("ul li:last-child");
-    expect($q)->toMatch("//ul//li[not(following-sibling::*)]");
+    expect($q)->toMatch(".//ul//li[not(following-sibling::*)]");
 });
 
 
@@ -148,6 +148,112 @@ HTML;
 });
 
 
+test("getBoolAttribute", function() {
+    $src = <<<HTML
+    <input name="active" type="checkbox" checked />
+    <input name="uncredited" type="checkbox" />
+HTML;
+    $dom = dom\parse($src);
+    $inputActive = \pest\dom\querySelector($dom, "input[name=\"active\"]");
+    expect(\pest\dom\getBoolAttribute($inputActive, "checked"))->toBeTruthy();
+
+    $inputUncredited = \pest\dom\querySelector($dom, "input[name=\"uncredited\"]");
+    expect(\pest\dom\getBoolAttribute($inputUncredited, "checked"))->toBeFalsy();
+});
+
+test("isElementHidden", function() {
+    $src = <<<HTML
+    <div>Hello <span class="red bold" style="display: none;">world!</span></div>
+    <button>Click</button>
+HTML;
+    $dom = dom\parse($src);
+    $span = \pest\dom\querySelector($dom, "div span.red.bold");
+    expect(\pest\dom\isElementHidden($span))->toBeTruthy();
+    $button = \pest\dom\querySelector($dom, "button");
+    expect(\pest\dom\isElementHidden($button))->toBeFalsy();
+});
+
+test("getInputValue", function() {
+    $src = <<<HTML
+    <input name="active" type="checkbox" checked />
+    <input name="name" type="text" value="Peter Jackson" />
+    <input name="age" type="number" value="55" />
+HTML;
+    $dom = dom\parse($src);
+    $inputActive = \pest\dom\querySelector($dom, "input[name=\"active\"]");
+    expect(\pest\dom\getInputValue($inputActive))->toBeEqual(true);
+
+    $inputName = \pest\dom\querySelector($dom, "input[name=\"name\"]");
+    expect(\pest\dom\getInputValue($inputName))->toBeEqual("Peter Jackson");
+
+    $inputAge = \pest\dom\querySelector($dom, "input[name=\"age\"]");
+    expect(\pest\dom\getInputValue($inputAge))->toBeEqual(55);
+});
+
+
+test("getSelectValue", function() {
+    $src = <<<HTML
+    <select name="choice">
+        <option value="1">First</option>
+        <option value="2" selected>First</option>
+        <option value="3">First</option>
+    </select>
+    <select name="pets" multiple>
+        <option value="cat_0">Cat</option>
+        <option value="dog_1" selected>Dog</option>
+        <option value="fish_2" selected>Fish</option>
+        <option value="parrot_3">Parrot</option>
+    </select>
+HTML;
+    $dom = dom\parse($src);
+
+    $selectChoice = \pest\dom\querySelector($dom, "select[name=\"choice\"]");
+    expect(\pest\dom\getSelectValue($selectChoice))->toBe("2");
+
+    $selectPets = \pest\dom\querySelector($dom, "select[name=\"pets\"]");
+    expect(\pest\dom\getSelectValue($selectPets))->toBe(["dog_1","fish_2"]);
+    expect(\pest\dom\getSelectValue($selectPets, ["displayValue" => true]))->toBe(["Dog","Fish"]);
+});
+
+test("getElementValue", function() {
+    $src = <<<HTML
+    <input name="active" type="checkbox" checked />
+    <input name="name" type="text" value="Peter Jackson" />
+    <input name="age" type="number" value="55" />
+    <select name="choice">
+        <option value="1">First</option>
+        <option value="2" selected>First</option>
+        <option value="3">First</option>
+    </select>
+    <select name="pets" multiple>
+        <option value="cat_0">Cat</option>
+        <option value="dog_1" selected>Dog</option>
+        <option value="fish_2" selected>Fish</option>
+        <option value="parrot_3">Parrot</option>
+    </select>
+    <span>Some text here</span>
+HTML;
+    $dom = dom\parse($src);
+
+    $inputActive = \pest\dom\querySelector($dom, "input[name=\"active\"]");
+    expect(\pest\dom\getElementValue($inputActive))->toBeEqual(true);
+
+    $inputName = \pest\dom\querySelector($dom, "input[name=\"name\"]");
+    expect(\pest\dom\getElementValue($inputName))->toBeEqual("Peter Jackson");
+
+    $inputAge = \pest\dom\querySelector($dom, "input[name=\"age\"]");
+    expect(\pest\dom\getElementValue($inputAge))->toBeEqual(55);
+
+    $selectChoice = \pest\dom\querySelector($dom, "select[name=\"choice\"]");
+    expect(\pest\dom\getElementValue($selectChoice))->toBe("2");
+
+    $selectPets = \pest\dom\querySelector($dom, "select[name=\"pets\"]");
+    expect(\pest\dom\getElementValue($selectPets))->toBe(["dog_1","fish_2"]);
+    expect(\pest\dom\getElementValue($selectPets, ["displayValue" => true]))->toBe(["Dog","Fish"]);
+
+    $span = \pest\dom\querySelector($dom, "span");
+    expect(\pest\dom\getElementValue($span))->toBeEqual("Some text here");
+});
 
 
 test("accessible names: read more", function() {

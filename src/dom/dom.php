@@ -314,7 +314,7 @@ function getSelectValue(\DOMElement $select, $options = [])
     $dom = getDocument($select);    
     $xpath = new \DOMXPath($dom);
     
-    $optionNodes = iterator_to_array($xpath->query("//option", $select));
+    $optionNodes = iterator_to_array($xpath->query(".//option", $select));
 
     $selectedOptions = array_filter($optionNodes, function($node) { 
         //return $node->hasAttribute("selected"); 
@@ -350,7 +350,7 @@ function getSelectValue(\DOMElement $select, $options = [])
     return $value;
 }
 
-function getElementValue($node)
+function getElementValue($node, $options = [])
 {
     if(!isset($node)) {
         return null;
@@ -362,7 +362,7 @@ function getElementValue($node)
         if ($tagName == "input") {
             $value = getInputValue($node);
         } else if ($tagName == "select") {
-            $value = getSelectValue($node);
+            $value = getSelectValue($node, $options);
         } else {
             // What other elements have value attribute?
             if ($node->hasAttribute("value")) {
@@ -426,7 +426,7 @@ function cssSelectorToXPath($selector)
     // Collapse and trim whitespace so we have at most only one space separating characters
     $str = normalize($str);
     $len = strlen($str);
-    $xpath = "//";
+    $xpath = ".//";
     $elem = "*";
     $i = 0;
     while($i < $len) {
@@ -460,7 +460,7 @@ function cssSelectorToXPath($selector)
             break;
             case ',': {
                 if($str[$i+1] == ' ') $i++;
-                $xpath .= "|//";
+                $xpath .= "|.//";
                 $elem = "*";
             }
             break;

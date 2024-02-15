@@ -73,6 +73,22 @@ class DOMExpectation extends \pest\Expectation
         }
     }
 
+    public function toHaveDisplayValue($expected)
+    {
+        if(($this->value instanceof \DOMNode) || $this->value == null) {
+            $nodeValue = null;
+            if($this->value != null) {
+                $nodeValue = getElementValue($this->value, ["displayValue" => true]);
+            }
+            if(!$this->holds($nodeValue === $expected))
+            {
+                throw new TestFailException($nodeValue , $expected, $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "DOMNode", false);
+        }
+    }
+
     public function toBeChecked()
     {
         if(($this->value instanceof \DOMElement) || $this->value == null) {

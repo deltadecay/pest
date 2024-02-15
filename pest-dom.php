@@ -24,7 +24,7 @@ function queryAllByRole($container, $role, $options = array())
     $found = [];
 
     // Find elements with aria role
-    $nodelist = $xpath->query("//*[@role=\"".$role."\"]", $container);
+    $nodelist = $xpath->query(".//*[@role=\"".$role."\"]", $container);
     foreach ($nodelist as $node) {
         if(!in_array($node, $found, true)) {
             $found[] = $node;
@@ -42,7 +42,7 @@ function queryAllByRole($container, $role, $options = array())
                     $attrName = $attr['name'];
                     $attrValue = $attr['value'];
 
-                    $nodelist = $xpath->query("//".$name."[@".$attrName."=\"".$attrValue."\"]", $container);
+                    $nodelist = $xpath->query(".//".$name."[@".$attrName."=\"".$attrValue."\"]", $container);
                     foreach ($nodelist as $node) {
                         if(!in_array($node, $found, true)) {
                             $found[] = $node;
@@ -52,7 +52,7 @@ function queryAllByRole($container, $role, $options = array())
 
             } else {
                 // Just search by name
-                $nodelist = $xpath->query("//".$name, $container);
+                $nodelist = $xpath->query(".//".$name, $container);
                 foreach ($nodelist as $node) {
                     if(!in_array($node, $found, true)) {
                         $found[] = $node;
@@ -122,7 +122,7 @@ function queryAllByText($container, $pattern, $options = array())
     }
 
     // Find all nodes that have text content
-    $nodelist = $xpath->query("//*[string-length(text())>0]", $container);
+    $nodelist = $xpath->query(".//*[string-length(text())>0]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
@@ -176,7 +176,7 @@ function queryAllByTestId($container, $pattern, $options = array())
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute data-testid
-    $nodelist = $xpath->query("//*[@data-testid]", $container);
+    $nodelist = $xpath->query(".//*[@data-testid]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
@@ -223,7 +223,7 @@ function queryAllByTitle($container, $pattern, $options = array())
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute title
-    $nodelist = $xpath->query("//*[@title]", $container);
+    $nodelist = $xpath->query(".//*[@title]", $container);
     $found = [];
     foreach($nodelist as $node) {
         if($node instanceof \DOMElement) {
@@ -238,7 +238,7 @@ function queryAllByTitle($container, $pattern, $options = array())
     }
 
     // Find all title nodes which are descendants of svg
-    $nodelist = $xpath->query("//svg//title", $container);
+    $nodelist = $xpath->query(".//svg//title", $container);
     foreach($nodelist as $node) {   
         $text = $node->textContent;
         $hasMatch = \pest\utils\hasTextMatch($pattern, $text, $options);
@@ -285,7 +285,7 @@ function queryAllByAltText($container, $pattern, $options = array())
     $xpath = new DOMXPath($dom);
 
     // Find all nodes that have attribute alt 
-    $nodelist = $xpath->query("//*[@alt]", $container);
+    $nodelist = $xpath->query(".//*[@alt]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
@@ -340,7 +340,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
     $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
     // Find all labels with text 
-    $labelNodes = $xpath->query("//label[string-length(text())>0]", $container);
+    $labelNodes = $xpath->query(".//label[string-length(text())>0]", $container);
 
     $found = [];
     foreach($labelNodes as $labelNode) {
@@ -353,7 +353,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
             $id = $labelNode->getAttribute("id");
             if(strlen($for) > 0) {
                 // "for" attribute, must find an input with matching id
-                $inputNodes = $xpath->query("//*[@id=\"".$for."\"]");
+                $inputNodes = $xpath->query(".//*[@id=\"".$for."\"]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
                     if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
@@ -365,7 +365,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
                 // "id" attribute, must find an input with matching aria-labelledby
                 // Note! aria-labelledby can be a space separated list
                 //$inputNodes = $xpath->query("//*[@aria-labelledby='".$id."']");
-                $inputNodes = $xpath->query("//*[contains(concat(\" \",normalize-space(@aria-labelledby),\" \"),\" ".$id." \")]");
+                $inputNodes = $xpath->query(".//*[contains(concat(\" \",normalize-space(@aria-labelledby),\" \"),\" ".$id." \")]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
                     if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
@@ -375,7 +375,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
             }
 
             // Any child input nodes to this label
-            $inputNodes = $xpath->query("//*", $labelNode);
+            $inputNodes = $xpath->query(".//*", $labelNode);
             foreach($inputNodes as $inputNode) {
                 $inputTagName = strtolower($inputNode->tagName);
                 if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
@@ -387,7 +387,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
 
     // Any element with attribute aria-label, this can be used on any interactive element not
     // just those constrained by label elements
-    $inputNodes = $xpath->query("//*[@aria-label]", $container);
+    $inputNodes = $xpath->query(".//*[@aria-label]", $container);
     foreach($inputNodes as $inputNode) {
         $inputTagName = strtolower($inputNode->tagName);
         $ariaLabel = $inputNode->getAttribute("aria-label");
@@ -434,7 +434,7 @@ function queryAllByPlaceholderText($container, $pattern, $options = array())
     $xpath = new DOMXPath($dom);
 
     // Find all input/textarea that have attribute placeholder
-    $nodelist = $xpath->query("//input[@placeholder]|//textarea[@placeholder]", $container);
+    $nodelist = $xpath->query(".//input[@placeholder]|.//textarea[@placeholder]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
@@ -481,7 +481,7 @@ function queryAllByDisplayValue($container, $pattern, $options = array())
     $xpath = new DOMXPath($dom);
 
     // Find all input/textarea 
-    $nodelist = $xpath->query("//input[@value]|//textarea", $container);
+    $nodelist = $xpath->query(".//input[@value]|.//textarea", $container);
     $found = [];
     foreach($nodelist as $node) {
         if($node instanceof \DOMElement) {
@@ -496,7 +496,7 @@ function queryAllByDisplayValue($container, $pattern, $options = array())
     }
     // Find all selected options, but we do not vant the value attribute but instead the displayed value
     // ie. the text content of option
-    $nodelist = $xpath->query("//select/option[@selected]/..", $container);
+    $nodelist = $xpath->query(".//select/option[@selected]/..", $container);
     foreach($nodelist as $node) {
         if($node instanceof \DOMElement) {
             $displayValue = \pest\dom\getSelectValue($node, ["displayValue" => true]);

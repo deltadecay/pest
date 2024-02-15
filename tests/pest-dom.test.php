@@ -85,6 +85,7 @@ HTML;
     $select = dom\getByRole($dom, "menu");
     expect($select)->toBeInTheDocument();
     expect($select)->toHaveValue("2");
+    expect($select)->toHaveDisplayValue("Second");
 });
 
 test("select multiple", function() {
@@ -110,6 +111,8 @@ HTML;
 
     $select = dom\getByRole($dom, "menu");
     expect($select)->toBeInTheDocument();
+    expect($select)->toHaveDisplayValue(["Tyrannosaurus", "Saltasaurus"]);
+    // Since the options don't have value attribute, their values are the text content
     expect($select)->toHaveValue(["Tyrannosaurus", "Saltasaurus"]);
 });
 
@@ -245,6 +248,6 @@ HTML;
     $select = dom\getByDisplayValue($dom, "Alaska");
     expect($select)->toBeInTheDocument();
     expect($select)->toHaveValue("AK"); // Note the value is AK, but display value Alaska
-
+    expect($select)->toHaveDisplayValue("Alaska"); 
 });
 
