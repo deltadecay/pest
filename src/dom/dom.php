@@ -405,13 +405,173 @@ function getFirstNonEmptyChildNode($node)
     return $childNode;
 }
 
+function readToken($pos, $str, $delimiters = " ,.[]():#\"'+~>")
+{
+    $len = strlen($str);
+    $token = "";
+    while($pos < $len) {
+        $c = $str[$pos];
+        if(strpos($delimiters, $c) !== false) {
+            break;
+        }
+        $token .= $c;
+        $pos++;
+    }
+    return $token;
+}
 
 function cssSelectorToXPath($selector) 
+{
+    $str = $selector;
+    // Collapse and trim whitespace so we have at most only one space separating characters
+    $selector = normalize($str);
+    $len = strlen($str);
+    $xpath = "//";
+    $elem = "*";
+    $i = 0;
+    
+    while($i < $len) {
+
+        $c = $str[$i];
+        switch($c) {
+            case ':': {
+                // pseudo-class
+                $name = readToken($i+1, $str);
+                $i += strlen($name);
+            }
+            break;
+            case ',': {
+                $xpath .= "|";
+                $elem = "*";
+            }
+            break;
+            case ' ': {
+                if(in_array($str[$i+1], ['>','+','~'])) {
+                    // Do nothing if next is one of the above
+                //if($str[$i+1] == '>') {
+                //    $i++;
+                //    $xpath .= "/";
+                //    if($str[$i+1] == ' ') $i++;
+                } else {
+                    $xpath .= "//";
+                    $elem = "*";
+                }
+            }
+            break;
+            case '>': {
+                if($str[$i+1] == ' ') $i++;
+                $xpath .= "/";
+                $elem = "*";
+            } 
+            break;
+            case '+': {
+                if($str[$i+1] == ' ') $i++;
+                $xpath .= "/following-sibling::*[1]/self::";
+                $elem = "*";
+            }
+            break;
+            case '~': {
+                if($str[$i+1] == ' ') $i++;
+                $xpath .= "/following-sibling::";
+                $elem = "*";
+            }
+            break;
+            /*case '"': {
+                $state['string'] = 'string';
+                $name = readToken($i+1, $str, "\"");
+                $i += strlen($name) + 1; // +1 for ending "
+            }
+            break;
+            case '\'': {
+                $state['string'] = 'string';
+                $name = readToken($i+1, $str, "'");
+                $i += strlen($name) + 1; // +1 for ending '
+            }
+            break;*/
+            case '[': {
+                // attribute
+                $attrSpec = readToken($i+1, $str, "]");
+                $i += strlen($attrSpec) + 1; // +1 for ending ]
+                unset($matches);
+                if(preg_match("/([a-zA-Z0-9_-]*)\s*(([\^\*\~\$|]*=)\s*[\"'](.*)[\"'])?/i", $attrSpec, $matches)) {
+                    $attrName = $matches[1];
+                    if (count($matches) > 2) {
+                        $attrOp = $matches[3];
+                        $attrValue = $matches[4];
+                        switch($attrOp[0]) {
+                            case '=':
+                                $xpath .= "[@".$attrName."='".$attrValue."']";
+                                break;
+                            case '*':
+                                $xpath .= "[contains(@".$attrName.",'".$attrValue."')]";
+                                break;
+                            case '^':
+                                $xpath .= "[starts-with(@".$attrName.",'".$attrValue."')]";
+                                break;
+                            case '|':
+                                $xpath .= "[@".$attrName."='".$attrValue."' or starts-with(@".$attrName.",'".$attrValue."-')]";
+                                break;
+                            case '$':
+                                $xpath .= "[substring(@".$attrName.",string-length(@".$attrName.")-(string-length('".$attrValue."')-1))='".$attrValue."']";
+                                break;
+                            case '~':
+                                $xpath .= "[contains(concat(' ',normalize-space(@".$attrName."),' '),' ".$attrValue." ')]";
+                                break;
+                            default:
+                                break;
+                        }
+                    } else {
+                        $xpath .= "[@".$attrName."]";
+                    }
+                }
+            }
+            break;
+            case ".": {
+                // class
+                $name = readToken($i+1, $str);
+                $i += strlen($name);
+                if(strlen($name) > 0) {
+                    $xpath .= $elem."[contains(concat(' ',normalize-space(@class),' '),' ".$name." ')]";
+                    $elem = "";
+                }
+            }
+            break;
+            case "#": {
+                // id
+                $name = readToken($i+1, $str);
+                $i += strlen($name);
+                if(strlen($name) > 0) {
+                    $xpath .= $elem."[@id='".$name."']";
+                    $elem = "";
+                }
+            }
+            break;
+            default: {
+                $name = readToken($i, $str);
+                $elem = "";
+                $i += strlen($name);
+                $xpath .= $name;
+                if(strlen($name) > 0) {
+                    // If we read a token it means we read an element
+                    // but we didn't precede by a special char, so must compensate for the i++ later
+                    $i--;
+                }
+            }
+            break;
+        }
+
+        $i++;
+    }
+
+    return $xpath;
+}
+
+function cssSelectorToXPath_old($selector) 
 {
     // TODO Handle more complicated patterns
     // Doesn't support: attributes within []. Only supports classes and id refixed with . and #
     // Doesn't support: sibling selection with + ~ 
-    // Doesn't support: :selectors eg. :last
+    // Doesn't support: :selectors eg. :last-child
     // See the tests for examples
     
     // Collapse and trim whitespace
