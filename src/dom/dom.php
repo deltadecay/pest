@@ -429,7 +429,6 @@ function cssSelectorToXPath($selector)
     $xpath = "//";
     $elem = "*";
     $i = 0;
-    
     while($i < $len) {
 
         $c = $str[$i];
@@ -438,20 +437,18 @@ function cssSelectorToXPath($selector)
                 // pseudo-class
                 $name = readToken($i+1, $str);
                 $i += strlen($name);
+                // TODO support asome of the simpler eg. last-child, first-child
             }
             break;
             case ',': {
-                $xpath .= "|";
+                if($str[$i+1] == ' ') $i++;
+                $xpath .= "|//";
                 $elem = "*";
             }
             break;
             case ' ': {
-                if(in_array($str[$i+1], ['>','+','~'])) {
-                    // Do nothing if next is one of the above
-                //if($str[$i+1] == '>') {
-                //    $i++;
-                //    $xpath .= "/";
-                //    if($str[$i+1] == ' ') $i++;
+                if(in_array($str[$i+1], ['>','+','~',','])) {
+                    // Do nothing if next is one of the above, they will be handled in the cases below
                 } else {
                     $xpath .= "//";
                     $elem = "*";
@@ -493,29 +490,33 @@ function cssSelectorToXPath($selector)
                 $attrSpec = readToken($i+1, $str, "]");
                 $i += strlen($attrSpec) + 1; // +1 for ending ]
                 unset($matches);
+                // parse attribute in the form [name op "value"]
                 if(preg_match("/([a-zA-Z0-9_-]*)\s*(([\^\*\~\$|]*=)\s*[\"'](.*)[\"'])?/i", $attrSpec, $matches)) {
                     $attrName = $matches[1];
+                    $xpath .= $elem;
                     if (count($matches) > 2) {
                         $attrOp = $matches[3];
                         $attrValue = $matches[4];
+                        // Escape double quotes
+                        $attrValue = str_replace('"', '\\"', $attrValue);
                         switch($attrOp[0]) {
                             case '=':
-                                $xpath .= "[@".$attrName."='".$attrValue."']";
+                                $xpath .= "[@".$attrName."=\"".$attrValue."\"]";
                                 break;
                             case '*':
-                                $xpath .= "[contains(@".$attrName.",'".$attrValue."')]";
+                                $xpath .= "[contains(@".$attrName.",\"".$attrValue."\")]";
                                 break;
                             case '^':
-                                $xpath .= "[starts-with(@".$attrName.",'".$attrValue."')]";
+                                $xpath .= "[starts-with(@".$attrName.",\"".$attrValue."\")]";
                                 break;
                             case '|':
-                                $xpath .= "[@".$attrName."='".$attrValue."' or starts-with(@".$attrName.",'".$attrValue."-')]";
+                                $xpath .= "[@".$attrName."=\"".$attrValue."\" or starts-with(@".$attrName.",\"".$attrValue."-\")]";
                                 break;
                             case '$':
-                                $xpath .= "[substring(@".$attrName.",string-length(@".$attrName.")-(string-length('".$attrValue."')-1))='".$attrValue."']";
+                                $xpath .= "[substring(@".$attrName.",string-length(@".$attrName.")-(string-length(\"".$attrValue."\")-1))=\"".$attrValue."\"]";
                                 break;
                             case '~':
-                                $xpath .= "[contains(concat(' ',normalize-space(@".$attrName."),' '),' ".$attrValue." ')]";
+                                $xpath .= "[contains(concat(\" \",normalize-space(@".$attrName."),\" \"),\" ".$attrValue." \")]";
                                 break;
                             default:
                                 break;
@@ -523,6 +524,7 @@ function cssSelectorToXPath($selector)
                     } else {
                         $xpath .= "[@".$attrName."]";
                     }
+                    $elem = "";
                 }
             }
             break;
@@ -531,7 +533,7 @@ function cssSelectorToXPath($selector)
                 $name = readToken($i+1, $str);
                 $i += strlen($name);
                 if(strlen($name) > 0) {
-                    $xpath .= $elem."[contains(concat(' ',normalize-space(@class),' '),' ".$name." ')]";
+                    $xpath .= $elem."[contains(concat(\" \",normalize-space(@class),\" \"),\" ".$name." \")]";
                     $elem = "";
                 }
             }
@@ -541,14 +543,14 @@ function cssSelectorToXPath($selector)
                 $name = readToken($i+1, $str);
                 $i += strlen($name);
                 if(strlen($name) > 0) {
-                    $xpath .= $elem."[@id='".$name."']";
+                    $xpath .= $elem."[@id=\"".$name."\"]";
                     $elem = "";
                 }
             }
             break;
             default: {
+                // No preceding special char, assume it is element name
                 $name = readToken($i, $str);
-                $elem = "";
                 $i += strlen($name);
                 $xpath .= $name;
                 if(strlen($name) > 0) {
@@ -556,6 +558,7 @@ function cssSelectorToXPath($selector)
                     // but we didn't precede by a special char, so must compensate for the i++ later
                     $i--;
                 }
+                $elem = "";
             }
             break;
         }

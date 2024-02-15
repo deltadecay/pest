@@ -86,56 +86,61 @@ test("cssSelectorToXPath_old", function() {
 test("cssSelectorToXPath", function() {
 
     $q = \pest\dom\cssSelectorToXPath(".red.blue");
-    expect($q)->toMatch("//*[contains(concat(' ',normalize-space(@class),' '),' red ')][contains(concat(' ',normalize-space(@class),' '),' blue ')]");
+    expect($q)->toMatch("//*[contains(concat(\" \",normalize-space(@class),\" \"),\" red \")][contains(concat(\" \",normalize-space(@class),\" \"),\" blue \")]");
 
     $q = \pest\dom\cssSelectorToXPath("#my-id");
-    expect($q)->toMatch("//*[@id='my-id']");
+    expect($q)->toMatch("//*[@id=\"my-id\"]");
 
     $q = \pest\dom\cssSelectorToXPath("a#my-link");
-    expect($q)->toMatch("//a[@id='my-link']");
+    expect($q)->toMatch("//a[@id=\"my-link\"]");
 
     $q = \pest\dom\cssSelectorToXPath("a#my-link.important");
-    expect($q)->toMatch("//a[@id='my-link'][contains(concat(' ',normalize-space(@class),' '),' important ')]");
+    expect($q)->toMatch("//a[@id=\"my-link\"][contains(concat(\" \",normalize-space(@class),\" \"),\" important \")]");
 
     $q = \pest\dom\cssSelectorToXPath("input");
     expect($q)->toMatch("//input");
 
-    $q = \pest\dom\cssSelectorToXPath("script, style");
-    expect($q)->toMatch("//script|//style");
+    $q = \pest\dom\cssSelectorToXPath("script, style,code , pre");
+    expect($q)->toMatch("//script|//style|//code|//pre");
 
     $q = \pest\dom\cssSelectorToXPath("div.button");
-    expect($q)->toMatch("//div[contains(concat(' ',normalize-space(@class),' '),' button ')]");
+    expect($q)->toMatch("//div[contains(concat(\" \",normalize-space(@class),\" \"),\" button \")]");
 
     $q = \pest\dom\cssSelectorToXPath("ul.menu li.item");
-    expect($q)->toMatch("//ul[contains(concat(' ',normalize-space(@class),' '),' menu ')]//li[contains(concat(' ',normalize-space(@class),' '),' item ')]");
+    expect($q)->toMatch("//ul[contains(concat(\" \",normalize-space(@class),\" \"),\" menu \")]//li[contains(concat(\" \",normalize-space(@class),\" \"),\" item \")]");
     
     $q = \pest\dom\cssSelectorToXPath("div > span.msg");
-    expect($q)->toMatch("//div/span[contains(concat(' ',normalize-space(@class),' '),' msg ')]");
+    expect($q)->toMatch("//div/span[contains(concat(\" \",normalize-space(@class),\" \"),\" msg \")]");
 
     $q = \pest\dom\cssSelectorToXPath("a[title]");
     expect($q)->toMatch("//a[@title]");
 
-    $q = \pest\dom\cssSelectorToXPath("a[title='hello']");
-    expect($q)->toMatch("//a[@title='hello']");
+    $q = \pest\dom\cssSelectorToXPath("a[title=\"hello\"]");
+    expect($q)->toMatch("//a[@title=\"hello\"]");
     
-    $q = \pest\dom\cssSelectorToXPath("a[title*='hello']");
-    expect($q)->toMatch("//a[contains(@title,'hello')]");
+    $q = \pest\dom\cssSelectorToXPath("a[title *= \"hello\"]");
+    expect($q)->toMatch("//a[contains(@title,\"hello\")]");
 
-    $q = \pest\dom\cssSelectorToXPath("a[title^='hello']");
-    expect($q)->toMatch("//a[starts-with(@title,'hello')]");
+    $q = \pest\dom\cssSelectorToXPath("a[title^=\"hello\"]");
+    expect($q)->toMatch("//a[starts-with(@title,\"hello\")]");
 
-    $q = \pest\dom\cssSelectorToXPath("a[title|='hello']");
-    expect($q)->toMatch("//a[@title='hello' or starts-with(@title,'hello-')]");
+    $q = \pest\dom\cssSelectorToXPath("a[title|=\"hello\"]");
+    expect($q)->toMatch("//a[@title=\"hello\" or starts-with(@title,\"hello-\")]");
 
-    $q = \pest\dom\cssSelectorToXPath("a[title$='hello']");
-    expect($q)->toMatch("//a[substring(@title,string-length(@title)-(string-length('hello')-1))='hello']");
+    $q = \pest\dom\cssSelectorToXPath("a[title$= \"hello\"]");
+    expect($q)->toMatch("//a[substring(@title,string-length(@title)-(string-length(\"hello\")-1))=\"hello\"]");
 
-    $q = \pest\dom\cssSelectorToXPath("a[title~='hello']");
-    expect($q)->toMatch("//a[contains(concat(' ',normalize-space(@title),' '),' hello ')]");
+    $q = \pest\dom\cssSelectorToXPath("a[title ~=\"hello\"]");
+    expect($q)->toMatch("//a[contains(concat(\" \",normalize-space(@title),\" \"),\" hello \")]");
 
-    $q = \pest\dom\cssSelectorToXPath("a[href^='https://'][href$='.org']");
-    expect($q)->toMatch("//a[starts-with(@href,'https://')][substring(@href,string-length(@href)-(string-length('.org')-1))='.org']");
+    $q = \pest\dom\cssSelectorToXPath("a[href ^= \"https://\"][href$=\".org\"]");
+    expect($q)->toMatch("//a[starts-with(@href,\"https://\")][substring(@href,string-length(@href)-(string-length(\".org\")-1))=\".org\"]");
 
+    $q = \pest\dom\cssSelectorToXPath("div span[title].blue");
+    expect($q)->toMatch("//div//span[@title][contains(concat(\" \",normalize-space(@class),\" \"),\" blue \")]");
+
+    $q = \pest\dom\cssSelectorToXPath("*[title*=\"hell's\"]");
+    expect($q)->toMatch("//*[contains(@title,\"hell's\")]");
     
 });
 
@@ -144,6 +149,7 @@ test("querySelector", function() {
     $src = <<<HTML
     <div id="helloworld">Hello <span class="red bold">world!</span></div>
     <span>Another <span class="bold">span</span></span>
+    <button title="Hell's warm">X</button>
 HTML;
     $dom = dom\parse($src);
     expect(\pest\dom\querySelectorAll($dom, "div"))->toHaveCount(1);
@@ -154,7 +160,7 @@ HTML;
     expect(\pest\dom\querySelector($dom, "div .bold")->textContent)->toBe("world!");
     expect(\pest\dom\querySelectorAll($dom, ".bold"))->toHaveCount(2);
     expect(\pest\dom\querySelector($dom, "span span")->textContent)->toBe("span");
-
+    expect(\pest\dom\querySelector($dom, "button[title*=\"Hell's\"]")->textContent)->toBe("X");
 });
 
 

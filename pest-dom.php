@@ -24,7 +24,7 @@ function queryAllByRole($container, $role, $options = array())
     $found = [];
 
     // Find elements with aria role
-    $nodelist = $xpath->query("//*[@role='".$role."']", $container);
+    $nodelist = $xpath->query("//*[@role=\"".$role."\"]", $container);
     foreach ($nodelist as $node) {
         if(!in_array($node, $found, true)) {
             $found[] = $node;
@@ -42,7 +42,7 @@ function queryAllByRole($container, $role, $options = array())
                     $attrName = $attr['name'];
                     $attrValue = $attr['value'];
 
-                    $nodelist = $xpath->query("//".$name."[@".$attrName."='".$attrValue."']", $container);
+                    $nodelist = $xpath->query("//".$name."[@".$attrName."=\"".$attrValue."\"]", $container);
                     foreach ($nodelist as $node) {
                         if(!in_array($node, $found, true)) {
                             $found[] = $node;
@@ -353,7 +353,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
             $id = $labelNode->getAttribute("id");
             if(strlen($for) > 0) {
                 // "for" attribute, must find an input with matching id
-                $inputNodes = $xpath->query("//*[@id='".$for."']");
+                $inputNodes = $xpath->query("//*[@id=\"".$for."\"]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
                     if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
@@ -365,7 +365,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
                 // "id" attribute, must find an input with matching aria-labelledby
                 // Note! aria-labelledby can be a space separated list
                 //$inputNodes = $xpath->query("//*[@aria-labelledby='".$id."']");
-                $inputNodes = $xpath->query("//*[contains(concat(' ',normalize-space(@aria-labelledby),' '),' ".$id." ')]");
+                $inputNodes = $xpath->query("//*[contains(concat(\" \",normalize-space(@aria-labelledby),\" \"),\" ".$id." \")]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
                     if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
