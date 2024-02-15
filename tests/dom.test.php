@@ -49,40 +49,6 @@ test("expectOnlyOne", function() {
 
 
 
-
-test("cssSelectorToXPath_old", function() {
-
-    $q = \pest\dom\cssSelectorToXPath_old(".red.blue");
-    expect($q)->toMatch("//*[contains(concat(' ',normalize-space(@class),' '),' red ')][contains(concat(' ',normalize-space(@class),' '),' blue ')]");
-
-    $q = \pest\dom\cssSelectorToXPath_old("#my-id");
-    expect($q)->toMatch("//*[@id='my-id']");
-
-    $q = \pest\dom\cssSelectorToXPath_old("a#my-link");
-    expect($q)->toMatch("//a[@id='my-link']");
-
-    $q = \pest\dom\cssSelectorToXPath_old("a#my-link.important");
-    expect($q)->toMatch("//a[@id='my-link'][contains(concat(' ',normalize-space(@class),' '),' important ')]");
-
-    $q = \pest\dom\cssSelectorToXPath_old("input");
-    expect($q)->toMatch("//input");
-
-    $q = \pest\dom\cssSelectorToXPath_old("script, style");
-    expect($q)->toMatch("//script|//style");
-
-    $q = \pest\dom\cssSelectorToXPath_old("div.button");
-    expect($q)->toMatch("//div[contains(concat(' ',normalize-space(@class),' '),' button ')]");
-
-    $q = \pest\dom\cssSelectorToXPath_old("ul.menu li.item");
-    expect($q)->toMatch("//ul[contains(concat(' ',normalize-space(@class),' '),' menu ')]//li[contains(concat(' ',normalize-space(@class),' '),' item ')]");
-    
-    $q = \pest\dom\cssSelectorToXPath_old("div > span.msg");
-    expect($q)->toMatch("//div/span[contains(concat(' ',normalize-space(@class),' '),' msg ')]");
-});
-
-
-
-
 test("cssSelectorToXPath", function() {
 
     $q = \pest\dom\cssSelectorToXPath(".red.blue");

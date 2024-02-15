@@ -424,13 +424,12 @@ function cssSelectorToXPath($selector)
 {
     $str = $selector;
     // Collapse and trim whitespace so we have at most only one space separating characters
-    $selector = normalize($str);
+    $str = normalize($str);
     $len = strlen($str);
     $xpath = "//";
     $elem = "*";
     $i = 0;
     while($i < $len) {
-
         $c = $str[$i];
         switch($c) {
             case ':': {
@@ -440,12 +439,6 @@ function cssSelectorToXPath($selector)
                 // TODO support asome of the simpler eg. last-child, first-child
             }
             break;
-            case ',': {
-                if($str[$i+1] == ' ') $i++;
-                $xpath .= "|//";
-                $elem = "*";
-            }
-            break;
             case ' ': {
                 if(in_array($str[$i+1], ['>','+','~',','])) {
                     // Do nothing if next is one of the above, they will be handled in the cases below
@@ -453,6 +446,12 @@ function cssSelectorToXPath($selector)
                     $xpath .= "//";
                     $elem = "*";
                 }
+            }
+            break;
+            case ',': {
+                if($str[$i+1] == ' ') $i++;
+                $xpath .= "|//";
+                $elem = "*";
             }
             break;
             case '>': {
@@ -549,7 +548,7 @@ function cssSelectorToXPath($selector)
             }
             break;
             default: {
-                // No preceding special char, assume it is element name
+                // No preceding special char, assume it is the name of an element
                 $name = readToken($i, $str);
                 $i += strlen($name);
                 $xpath .= $name;
@@ -566,76 +565,6 @@ function cssSelectorToXPath($selector)
         $i++;
     }
 
-    return $xpath;
-}
-
-function cssSelectorToXPath_old($selector) 
-{
-    // TODO Handle more complicated patterns
-    // Doesn't support: attributes within []. Only supports classes and id refixed with . and #
-    // Doesn't support: sibling selection with + ~ 
-    // Doesn't support: :selectors eg. :last-child
-    // See the tests for examples
-    
-    // Collapse and trim whitespace
-    $selector = normalize($selector);
-
-    $pathAlts = explode(",", $selector);
-    $xpathParts = [];
-    foreach($pathAlts as $pathAlt) {
-        $pathAlt = trim($pathAlt);
-
-        // Split paths on space to get the different parts
-        $parts = explode(" ", $pathAlt);
-
-        $partPath = "";
-        $pathSep = "//";
-        foreach($parts as $part) {
-            $part = trim($part);
-            if ($part == ">") {
-                $pathSep = "/";
-                continue;
-            }
-
-            $elemparts = explode(".", $part); 
-            $elem = $elemparts[0]; // First is the elem
-
-            $hashPos = stripos($elem, "#");
-            $attr = "";
-            if ($hashPos !== false) {
-                $id = substr($elem, $hashPos + 1);
-                $elem = substr($elem, 0, $hashPos);
-                $attr .= "[@id='".$id."']";
-                
-            }
-            if($elem == "") {
-                $elem = "*";
-            }
-            $classes = array_slice($elemparts, 1);
-            //}
-
-            foreach($classes as $class) {
-                $hashPos = stripos($class, "#");
-                $id = "";
-                if ($hashPos !== false) {
-                    $id = substr($class, $hashPos + 1);
-                    $class = substr($class, 0, $hashPos);   
-                }
-                if($class != "") { 
-                    $attr .= "[contains(concat(' ',normalize-space(@class),' '),' ".$class." ')]";
-                }
-                if($id != "") {
-                    $attr .= "[@id='".$id."']";
-                }
-            }
-
-            $partPath .= $pathSep.$elem.$attr;
-            $pathSep = "//"; // reset to //. We need > to set to /
-        }
-        $xpathParts[] = $partPath;
-    }
-
-    $xpath = implode("|", $xpathParts);
     return $xpath;
 }
 
