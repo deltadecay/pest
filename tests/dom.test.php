@@ -47,7 +47,13 @@ test("expectOnlyOne", function() {
     expect(function() { \pest\dom\expectOnlyOne(["one","two"]); })->toThrow();
 });
 
-
+test("readToken", function() {
+    expect(\pest\dom\readToken(0, "div.p", "."))->toBe("div");
+    expect(\pest\dom\readToken(0, "div>p", "."))->toBe("div>p");
+    expect(\pest\dom\readToken(0, "div>p", ".>"))->toBe("div");
+    expect(\pest\dom\readToken(4, "div>p.red", ".>"))->toBe("p");
+    expect(\pest\dom\readToken(6, "div>p.red", ".>"))->toBe("red");
+});
 
 test("cssSelectorToXPath", function() {
 
@@ -107,7 +113,12 @@ test("cssSelectorToXPath", function() {
 
     $q = \pest\dom\cssSelectorToXPath("*[title*=\"hell's\"]");
     expect($q)->toMatch("//*[contains(@title,\"hell's\")]");
-    
+
+    $q = \pest\dom\cssSelectorToXPath("ul li:first-child");
+    expect($q)->toMatch("//ul//li[not(preceding-sibling::*)]");
+   
+    $q = \pest\dom\cssSelectorToXPath("ul li:last-child");
+    expect($q)->toMatch("//ul//li[not(following-sibling::*)]");
 });
 
 
@@ -116,6 +127,11 @@ test("querySelector", function() {
     <div id="helloworld">Hello <span class="red bold">world!</span></div>
     <span>Another <span class="bold">span</span></span>
     <button title="Hell's warm">X</button>
+    <ul>
+        <li>First</li>
+        <li>Second</li>
+        <li>Third</li>
+    </ul>
 HTML;
     $dom = dom\parse($src);
     expect(\pest\dom\querySelectorAll($dom, "div"))->toHaveCount(1);
@@ -127,6 +143,8 @@ HTML;
     expect(\pest\dom\querySelectorAll($dom, ".bold"))->toHaveCount(2);
     expect(\pest\dom\querySelector($dom, "span span")->textContent)->toBe("span");
     expect(\pest\dom\querySelector($dom, "button[title*=\"Hell's\"]")->textContent)->toBe("X");
+    expect(\pest\dom\querySelector($dom, "ul li:first-child")->textContent)->toBe("First");
+    expect(\pest\dom\querySelector($dom, "ul li:last-child")->textContent)->toBe("Third");
 });
 
 

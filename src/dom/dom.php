@@ -436,7 +436,17 @@ function cssSelectorToXPath($selector)
                 // pseudo-class
                 $name = readToken($i+1, $str);
                 $i += strlen($name);
-                // TODO support asome of the simpler eg. last-child, first-child
+                // TODO support more of these
+                switch($name) {
+                    case "first-child":
+                        $xpath .= $elem."[not(preceding-sibling::*)]";
+                        $elem = "";
+                        break;
+                    case "last-child":
+                        $xpath .= $elem."[not(following-sibling::*)]";
+                        $elem = "";
+                        break;
+                }
             }
             break;
             case ' ': {
