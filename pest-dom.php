@@ -8,7 +8,13 @@ require_once(__DIR__."/src/dom/domexpectation.php");
 use \DOMXPath;
 
 
-
+/**
+ * Assert the value of something by expecting the value being something.
+ * @param mixed The value to test
+ * @example expect(5 + 5)->toBe(10);
+ * @return DOMExpectation An expectation for the provided value. Use one of the matcher 
+ * methods to assert the value.
+ */
 function expect($value)
 {
     // This is the DOM specific expectation with matchers to support DOM nodes

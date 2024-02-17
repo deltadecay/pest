@@ -7,7 +7,7 @@ require_once(__DIR__."/src/mockfn.php");
 
 /**
  * Assert the value of something by expecting the value being something.
- * @param value The value to test
+ * @param mixed The value to test
  * @example expect(5 + 5)->toBe(10);
  * @return Expectation An expectation for the provided value. Use one of the matcher 
  * methods to assert the value.
@@ -19,7 +19,7 @@ function expect($value)
 
 /**
  * Run a named test 
- * @param name The name of the test
+ * @param string The name of the test
  * @param callable The implementation of the test as a callable
  * @example test("add two numbers", function() {
  *      expect(1 + 2)->toBe(3);

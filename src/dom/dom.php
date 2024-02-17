@@ -31,7 +31,7 @@ function parse($src)
     // As loadHTML() adds a DOCTYPE as well as <html> and <body> tag, 
     // create another DOMDocument and import just the nodes we want
     $dom = new \DOMDocument();
-    $first_div = $temp_dom->getElementsByTagName('dummyroot')[0];
+    $first_div = iterator_to_array($temp_dom->getElementsByTagName('dummyroot'))[0];
     // Imports and returns the copy
     $first_div_node = $dom->importNode($first_div, true);
     // Add it to the new dom
@@ -81,7 +81,11 @@ function expectOnlyOne($found, $type="some", $pattern="value")
     throw new Exception("Expected one element with $type $pattern, but found $n.");
 }
 
-
+/**
+ * Get the DOM document for a node.
+ * @param \DOMNode The node
+ * @return \DOMDocument The document
+ */
 function getDocument(\DOMNode $node)
 {
     if($node instanceof \DOMDocument) {
@@ -90,7 +94,7 @@ function getDocument(\DOMNode $node)
         $doc = $node->ownerDocument;    
     }
     if($doc == null) {
-        throw new \Exception("No owner document for ".$node->tagName);
+        throw new Exception("No owner document for node");
     }
     return $doc;
 }
@@ -101,13 +105,16 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
     $dom = getDocument($node);    
     $xpath = new \DOMXPath($dom);
 
-    $tagName = strtolower($node->tagName);
-    $accName = "";
-
     if ($node instanceof \DOMText) {
         $text = normalize($node->textContent);
         return $text;
     }
+
+    if (!($node instanceof \DOMElement)) {
+        return "";
+    }
+    $tagName = strtolower($node->tagName);
+    $accName = "";
 
     if($node->hasAttribute("aria-labelledby") && $traversal['aria-labelledby']==0) {
         // Note! aria-labelledby can be a space separated list
@@ -162,7 +169,8 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
         }   
     }
 
-    if($node->parentNode != null && $node->parentNode->tagName == "label") {
+    if($node->parentNode != null && ($node->parentNode instanceof \DOMElement) && 
+        $node->parentNode->tagName == "label") {
         // If a label is the direct parent node and current node is a form input
         if(isValidInputElements($tagName)) {
             $accNames = [];
@@ -253,7 +261,7 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
 
 function isValidInputElements($node)
 {
-    if($node instanceof \DOMNode) {
+    if($node instanceof \DOMElement) {
         $node = strtolower($node->tagName);
     } else {
         $node = strtolower("$node");
