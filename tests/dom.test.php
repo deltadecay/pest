@@ -122,6 +122,24 @@ test("cssSelectorToXPath", function() {
 
     $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(3)");
     expect($q)->toMatch(".//ul//li[3]");
+
+    $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(odd)");
+    expect($q)->toMatch(".//ul//li[(position() mod 2)=1]");
+
+    $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(3n+2)");
+    expect($q)->toMatch(".//ul//li[position()>=2 and ((position()-2) mod 3)=0]");
+
+    $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(4n-3)");
+    expect($q)->toMatch(".//ul//li[((position()+3) mod 4)=0]");
+
+    $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(0n + 4)");
+    expect($q)->toMatch(".//ul//li[4]");
+
+    $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(-n+3)");
+    expect($q)->toMatch(".//ul//li[position()<=3 and ((position()-3) mod -1)=0]");
+
+    $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(-2n-3)");
+    expect($q)->toMatch(".//ul//li[false]");
 });
 
 
@@ -151,7 +169,6 @@ HTML;
     expect(\pest\dom\querySelector($dom, "ul li:first-of-type")->textContent)->toBe("First");
     expect(\pest\dom\querySelector($dom, "ul li:last-of-type")->textContent)->toBe("Third");
     expect(\pest\dom\querySelector($dom, "*:enabled")->textContent)->toBe("X");
-
 });
 
 
@@ -169,8 +186,8 @@ test("querySelector nth-of-type", function() {
 HTML;
     $dom = dom\parse($src);
     
-    expect(\pest\dom\querySelector($dom, "ul li:nth-of-type(3)")->textContent)->toBe("Third");
-    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(even)");
+    expect(\pest\dom\querySelector($dom, "ul li:nth-of-type( 3)")->textContent)->toBe("Third");
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type( even)");
     expect($lis)->toHaveCount(3);
     expect($lis[0]->textContent)->toBe("Second");
     expect($lis[1]->textContent)->toBe("Fourth");
@@ -188,7 +205,7 @@ HTML;
     expect($lis[1]->textContent)->toBe("Fourth");
     expect($lis[2]->textContent)->toBe("Sixth");
 
-    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(2n+1)");
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(2n + 1)");
     expect($lis)->toHaveCount(4);
     expect($lis[0]->textContent)->toBe("First");
     expect($lis[1]->textContent)->toBe("Third");
@@ -248,6 +265,12 @@ HTML;
     expect($lis)->toHaveCount(0);
 
     $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(-2n-1)");
+    expect($lis)->toHaveCount(0);
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(0n)");
+    expect($lis)->toHaveCount(0);
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(0)");
     expect($lis)->toHaveCount(0);
 
     expect(\pest\dom\querySelector($dom, "ul li:nth-of-type(0n + 4)")->textContent)->toBe("Fourth");

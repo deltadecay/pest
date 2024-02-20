@@ -430,19 +430,24 @@ function readToken($pos, $str, $delimiters = " ,.[]():#\"'+~>")
 
 function selectNthFromExpression($expr, $posexpr = "position()")
 {
+    $expr = trim($expr);
+    // Supported expressions:
+    // even | odd
+    // constant number
+    // a*n op b , where op is + or -, b>=0 integer and a integer pos or neg
     $cond = "";
     unset($matches);
     if(preg_match("/(?P<evenodd>^odd|even$)|(?P<pos>^\d+$)|(?P<anplusb>(?P<a>-?\d*)n\s*((?P<op>[-+])\s*(?P<b>\d+))?)/", $expr, $matches)) {
         
         if($matches["evenodd"] == "odd") {
-            $cond = "[(($posexpr) mod 2)=1]";
+            $cond = "[($posexpr mod 2)=1]";
         } elseif($matches["evenodd"] == "even") {
-            $cond = "[(($posexpr) mod 2)=0]";
+            $cond = "[($posexpr mod 2)=0]";
         } elseif(strlen($matches["pos"]) > 0) {
             if($posexpr == "position()") {
                 $cond = "[".intval($matches["pos"])."]";
             } else {
-                $cond = "[($posexpr)=".intval($matches["pos"])."]";
+                $cond = "[$posexpr=".intval($matches["pos"])."]";
             }
         } elseif(strlen($matches["anplusb"]) > 0) {
             $a = 1;
@@ -461,14 +466,14 @@ function selectNthFromExpression($expr, $posexpr = "position()")
                 if($posexpr == "position()") {
                     $cond = "[".$b."]";
                 } else {
-                    $cond = "[($posexpr)=".$b."]";
+                    $cond = "[$posexpr=".$b."]";
                 }
             } elseif($a > 0 && $op == "+") {
-                $cond = "[($posexpr)>=$b and ((($posexpr)-$b) mod $a)=0]";
+                $cond = "[$posexpr>=$b and (($posexpr-$b) mod $a)=0]";
             } elseif($a > 0 && $op == "-") { 
-                $cond = "[((($posexpr)+$b) mod $a)=0]";
+                $cond = "[(($posexpr+$b) mod $a)=0]";
             } elseif($a < 0 && $op == "+") { 
-                $cond = "[($posexpr)<=$b and ((($posexpr)-$b) mod $a)=0]";
+                $cond = "[$posexpr<=$b and (($posexpr-$b) mod $a)=0]";
             } else {
                 // -an - b always negative
                 // this is an expression that results in no matches ever
@@ -551,7 +556,7 @@ function cssSelectorToXPath($selector)
                         if($str[$i+1] == "(") {
                             $expr = readToken($i+2, $str, ")");
                             $i += strlen($expr) + 2; // +2 for start and end parentheses ()
-                            $cond = selectNthFromExpression($expr, "count(preceding-sibling::*)+1");
+                            $cond = selectNthFromExpression($expr, "(count(preceding-sibling::*)+1)");
                             if(strlen($cond)> 0) {
                                 $xpath .= $elem.$cond;
                                 $elem = "";
