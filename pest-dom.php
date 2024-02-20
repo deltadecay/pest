@@ -114,9 +114,9 @@ function getByRole($container, $role, $options = array())
 // Returns a list of DOMNodes matching text
 function queryAllByText($container, $pattern, $options = array())
 {
-    $ignore = isset($options['ignore']) ? $options['ignore'] : "script, style";
-    // TODO use selector to constrain the match
-    //$selector = isset($options['selector']) ? $options['selector'] : "*";
+    $ignore = isset($options['ignore']) ? trim($options['ignore']) : "script, style";
+    // use selector to constrain the match
+    $selector = isset($options['selector']) ? trim($options['selector']) : "*";
 
     $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
@@ -127,19 +127,26 @@ function queryAllByText($container, $pattern, $options = array())
         $ignoredNodes = iterator_to_array($xpath->query($ignoreXPath, $container));
     }
 
+    $selectorNodes = [];
+    if (strlen($selector) > 0) {
+        $selectorXPath = \pest\dom\cssSelectorToXPath($selector);
+        $selectorNodes = iterator_to_array($xpath->query($selectorXPath, $container));
+    }
+
     // Find all nodes that have text content
     $nodelist = $xpath->query(".//*[string-length(text())>0]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
-        $tagName = strtolower($node->tagName);
+        //$tagName = strtolower($node->tagName);
         $firstNonEmptyNode = \pest\dom\getFirstNonEmptyChildNode($node);
         if($firstNonEmptyNode instanceof \DOMText) {
             // The first non empty node is a DOMText, which means content begins with text.
             // Thus wee can be sure that contents of the node can be considered as text
             $nodeText = $node->textContent;
             $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText, $options);
-            if($hasMatch && !in_array($node, $ignoredNodes, true)) {
+            if($hasMatch && !in_array($node, $ignoredNodes, true) && 
+                ($selector == "*" || in_array($node, $selectorNodes))) {
                 if(!in_array($node, $found, true)) {
                     $found[] = $node;
                 }
@@ -338,19 +345,24 @@ function getByAltText($container, $pattern, $options = array())
 // Returns a list of DOMNodes referenced by labels
 function queryAllByLabelText($container, $pattern, $options = array())
 {
-    // TODO use selector to constrain the match
-    //$selector = isset($options['selector']) ? $options['selector'] : "*";
-
-    //$validInputElements = ["input","select","textarea","meter","progress"];
+    // use selector to constrain the match
+    $selector = isset($options['selector']) ? trim($options['selector']) : "*";
 
     $dom = getDocument($container);
     $xpath = new DOMXPath($dom);
+
+    $selectorNodes = [];
+    if (strlen($selector) > 0) {
+        $selectorXPath = \pest\dom\cssSelectorToXPath($selector);
+        $selectorNodes = iterator_to_array($xpath->query($selectorXPath, $container));
+    }
+
     // Find all labels with text 
     $labelNodes = $xpath->query(".//label[string-length(text())>0]", $container);
 
     $found = [];
     foreach($labelNodes as $labelNode) {
-        $tagName = strtolower($labelNode->tagName);
+        //$tagName = strtolower($labelNode->tagName);
         $text = $labelNode->textContent; 
         $hasMatch = \pest\utils\hasTextMatch($pattern, $text, $options);
 
@@ -362,7 +374,8 @@ function queryAllByLabelText($container, $pattern, $options = array())
                 $inputNodes = $xpath->query(".//*[@id=\"".$for."\"]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
-                    if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
+                    if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName) &&
+                        ($selector == "*" || in_array($inputNode, $selectorNodes))) {
                         $found[] = $inputNode;
                     }
                 }
@@ -370,11 +383,11 @@ function queryAllByLabelText($container, $pattern, $options = array())
             if(strlen($id) > 0) {
                 // "id" attribute, must find an input with matching aria-labelledby
                 // Note! aria-labelledby can be a space separated list
-                //$inputNodes = $xpath->query("//*[@aria-labelledby='".$id."']");
                 $inputNodes = $xpath->query(".//*[contains(concat(\" \",normalize-space(@aria-labelledby),\" \"),\" ".$id." \")]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
-                    if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
+                    if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName) &&
+                        ($selector == "*" || in_array($inputNode, $selectorNodes))) {
                         $found[] = $inputNode;
                     }
                 }
@@ -384,7 +397,8 @@ function queryAllByLabelText($container, $pattern, $options = array())
             $inputNodes = $xpath->query(".//*", $labelNode);
             foreach($inputNodes as $inputNode) {
                 $inputTagName = strtolower($inputNode->tagName);
-                if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName)) {
+                if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName) &&
+                    ($selector == "*" || in_array($inputNode, $selectorNodes))) {
                     $found[] = $inputNode;
                 }
             }
