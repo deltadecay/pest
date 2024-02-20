@@ -119,6 +119,9 @@ test("cssSelectorToXPath", function() {
    
     $q = \pest\dom\cssSelectorToXPath("ul li:last-child");
     expect($q)->toMatch(".//ul//li[not(following-sibling::*)]");
+
+    $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(3)");
+    expect($q)->toMatch(".//ul//li[3]");
 });
 
 
@@ -126,7 +129,7 @@ test("querySelector", function() {
     $src = <<<HTML
     <div id="helloworld">Hello <span class="red bold">world!</span></div>
     <span>Another <span class="bold">span</span></span>
-    <button title="Hell's warm">X</button>
+    <button title="Hell's warm" enabled>X</button>
     <ul>
         <li>First</li>
         <li>Second</li>
@@ -145,8 +148,110 @@ HTML;
     expect(\pest\dom\querySelector($dom, "button[title*=\"Hell's\"]")->textContent)->toBe("X");
     expect(\pest\dom\querySelector($dom, "ul li:first-child")->textContent)->toBe("First");
     expect(\pest\dom\querySelector($dom, "ul li:last-child")->textContent)->toBe("Third");
+    expect(\pest\dom\querySelector($dom, "ul li:first-of-type")->textContent)->toBe("First");
+    expect(\pest\dom\querySelector($dom, "ul li:last-of-type")->textContent)->toBe("Third");
+    expect(\pest\dom\querySelector($dom, "*:enabled")->textContent)->toBe("X");
+
 });
 
+
+test("querySelector nth-of-type", function() {
+    $src = <<<HTML
+    <ul>
+        <li>First</li>
+        <li>Second</li>
+        <li>Third</li>
+        <li>Fourth</li>
+        <li>Fifth</li>
+        <li>Sixth</li>
+        <li>Seventh</li>
+    </ul>
+HTML;
+    $dom = dom\parse($src);
+    
+    expect(\pest\dom\querySelector($dom, "ul li:nth-of-type(3)")->textContent)->toBe("Third");
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(even)");
+    expect($lis)->toHaveCount(3);
+    expect($lis[0]->textContent)->toBe("Second");
+    expect($lis[1]->textContent)->toBe("Fourth");
+    expect($lis[2]->textContent)->toBe("Sixth");
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(odd)");
+    expect($lis)->toHaveCount(4);
+    expect($lis[0]->textContent)->toBe("First");
+    expect($lis[1]->textContent)->toBe("Third");
+    expect($lis[2]->textContent)->toBe("Fifth");
+    expect($lis[3]->textContent)->toBe("Seventh");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(2n)");
+    expect($lis)->toHaveCount(3);
+    expect($lis[0]->textContent)->toBe("Second");
+    expect($lis[1]->textContent)->toBe("Fourth");
+    expect($lis[2]->textContent)->toBe("Sixth");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(2n+1)");
+    expect($lis)->toHaveCount(4);
+    expect($lis[0]->textContent)->toBe("First");
+    expect($lis[1]->textContent)->toBe("Third");
+    expect($lis[2]->textContent)->toBe("Fifth");
+    expect($lis[3]->textContent)->toBe("Seventh");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(2n+3)");
+    expect($lis)->toHaveCount(3);
+    expect($lis[0]->textContent)->toBe("Third");
+    expect($lis[1]->textContent)->toBe("Fifth");
+    expect($lis[2]->textContent)->toBe("Seventh");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(2n-3)");
+    expect($lis)->toHaveCount(4);
+    expect($lis[0]->textContent)->toBe("First");
+    expect($lis[1]->textContent)->toBe("Third");
+    expect($lis[2]->textContent)->toBe("Fifth");
+    expect($lis[3]->textContent)->toBe("Seventh");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(4n-1)");
+    expect($lis)->toHaveCount(2);
+    expect($lis[0]->textContent)->toBe("Third");
+    expect($lis[1]->textContent)->toBe("Seventh");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(n)");
+    expect($lis)->toHaveCount(7);
+    expect($lis[0]->textContent)->toBe("First");
+    expect($lis[6]->textContent)->toBe("Seventh");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(n - 3)");
+    expect($lis)->toHaveCount(7);
+    expect($lis[0]->textContent)->toBe("First");
+    expect($lis[6]->textContent)->toBe("Seventh");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(n + 2)");
+    expect($lis)->toHaveCount(6);
+    expect($lis[0]->textContent)->toBe("Second");
+    expect($lis[5]->textContent)->toBe("Seventh");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(n + 6)");
+    expect($lis)->toHaveCount(2);
+    expect($lis[0]->textContent)->toBe("Sixth");
+    expect($lis[1]->textContent)->toBe("Seventh");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(-n + 3)");
+    expect($lis)->toHaveCount(3);
+    expect($lis[0]->textContent)->toBe("First");
+    expect($lis[1]->textContent)->toBe("Second");
+    expect($lis[2]->textContent)->toBe("Third");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(-2n + 4)");
+    expect($lis)->toHaveCount(2);
+    expect($lis[0]->textContent)->toBe("Second");
+    expect($lis[1]->textContent)->toBe("Fourth");
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(-n)");
+    expect($lis)->toHaveCount(0);
+
+    $lis = \pest\dom\querySelectorAll($dom, "li:nth-of-type(-2n-1)");
+    expect($lis)->toHaveCount(0);
+
+    expect(\pest\dom\querySelector($dom, "ul li:nth-of-type(0n + 4)")->textContent)->toBe("Fourth");
+});
 
 test("getBoolAttribute", function() {
     $src = <<<HTML

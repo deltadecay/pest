@@ -428,6 +428,64 @@ function readToken($pos, $str, $delimiters = " ,.[]():#\"'+~>")
     return $token;
 }
 
+function selectNthFromExpression($expr, $posexpr = "position()")
+{
+    $cond = "";
+    unset($matches);
+    if(preg_match("/(?P<evenodd>^odd|even$)|(?P<pos>^\d+$)|(?P<anplusb>(?P<a>-?\d*)n\s*((?P<op>[-+])\s*(?P<b>\d+))?)/", $expr, $matches)) {
+        
+        if($matches["evenodd"] == "odd") {
+            $cond = "[(($posexpr) mod 2)=1]";
+        } elseif($matches["evenodd"] == "even") {
+            $cond = "[(($posexpr) mod 2)=0]";
+        } elseif(strlen($matches["pos"]) > 0) {
+            if($posexpr == "position()") {
+                $cond = "[".intval($matches["pos"])."]";
+            } else {
+                $cond = "[($posexpr)=".intval($matches["pos"])."]";
+            }
+        } elseif(strlen($matches["anplusb"]) > 0) {
+            $a = 1;
+            if($matches["a"] == "-") {
+                $a = -1;
+            } elseif($matches["a"] == "") {
+                $a = 1;
+            } else { 
+                $a = intval($matches["a"]);
+            }
+            
+            $b = strlen($matches["b"])>0 ? intval($matches["b"]) : 0;
+            $op = $matches["op"] == "-" ? "-" : "+";
+            
+            if($a == 0 && $op == "+") {
+                if($posexpr == "position()") {
+                    $cond = "[".$b."]";
+                } else {
+                    $cond = "[($posexpr)=".$b."]";
+                }
+            } elseif($a > 0 && $op == "+") {
+                $cond = "[($posexpr)>=$b and ((($posexpr)-$b) mod $a)=0]";
+            } elseif($a > 0 && $op == "-") { 
+                $cond = "[((($posexpr)+$b) mod $a)=0]";
+            } elseif($a < 0 && $op == "+") { 
+                $cond = "[($posexpr)<=$b and ((($posexpr)-$b) mod $a)=0]";
+            } else {
+                // -an - b always negative
+                // this is an expression that results in no matches ever
+                $cond = "[false]";
+            }
+            
+            //     4n-1  2n-1  4n-4  2n+1  2n  2n+3  n-3  2n-3   -n + 3   -2n+4
+            // n 0  -1   -1      -4   1    0   3     -3    -3     3         4
+            // n 1   3    1       0   3    2   5     -2    -1     2         2 
+            // n 2   7    3       4   5    4   7     -1     1     1         0
+            // n 3  11    5       8   7    6   9      0     3     0        -2
+        }
+    }
+    return $cond;
+}
+
+
 function cssSelectorToXPath($selector) 
 {
     $str = $selector;
@@ -453,6 +511,52 @@ function cssSelectorToXPath($selector)
                     case "last-child":
                         $xpath .= $elem."[not(following-sibling::*)]";
                         $elem = "";
+                        break;
+                    case "first-of-type":
+                        $xpath .= $elem."[1]";
+                        $elem = "";
+                        break;
+                    case "last-of-type":
+                        $xpath .= $elem."[last()]";
+                        $elem = "";
+                        break;
+                    case "enabled":
+                        $xpath .= $elem."[@enabled]";
+                        $elem = "";
+                        break;
+                    case "disabled":
+                        $xpath .= $elem."[@disabled]";
+                        $elem = "";
+                        break;
+                    case "checked":
+                        $xpath .= $elem."[@selected or @checked]";
+                        $elem = "";
+                        break;
+                    case "empty":
+                        $xpath .= $elem."[not(*) and not(normalize-space())]";
+                        $elem = "";
+                        break;
+                    case "nth-of-type":
+                        if($str[$i+1] == "(") {
+                            $expr = readToken($i+2, $str, ")");
+                            $i += strlen($expr) + 2; // +2 for start and end parentheses ()
+                            $cond = selectNthFromExpression($expr, "position()");
+                            if(strlen($cond)> 0) {
+                                $xpath .= $elem.$cond;
+                                $elem = "";
+                            }
+                        }
+                        break;
+                    case "nth-child":
+                        if($str[$i+1] == "(") {
+                            $expr = readToken($i+2, $str, ")");
+                            $i += strlen($expr) + 2; // +2 for start and end parentheses ()
+                            $cond = selectNthFromExpression($expr, "count(preceding-sibling::*)+1");
+                            if(strlen($cond)> 0) {
+                                $xpath .= $elem.$cond;
+                                $elem = "";
+                            }
+                        }
                         break;
                 }
             }
