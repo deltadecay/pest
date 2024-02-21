@@ -134,25 +134,43 @@ function queryAllByText($container, $pattern, $options = array())
     }
 
     // Find all nodes that have text content
-    $nodelist = $xpath->query(".//*[string-length(normalize-space(text()))>0]", $container);
+    //$nodelist = $xpath->query(".//*[string-length(normalize-space(text()))>0]", $container);
+    $nodelist = $xpath->query(".//text()[string-length(normalize-space())>0]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
         //$tagName = strtolower($node->tagName);
-        $firstNonEmptyNode = \pest\dom\getFirstNonEmptyChildNode($node);
+        $parentToText = $node;
+        if($node instanceof \DOMText) {
+            $parentToText = $node->parentNode;
+        }
+        $firstNonEmptyNode = \pest\dom\getFirstNonEmptyChildNode($parentToText);
         if($firstNonEmptyNode instanceof \DOMText) {
             // The first non empty node is a DOMText, which means content begins with text.
             // Thus we can be sure that contents of the node can be considered as text
-            $nodeText = $node->textContent;
+            $nodeText = $parentToText->textContent;
             $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText, $options);
-            if($hasMatch && !in_array($node, $ignoredNodes, true) && 
-                ($selector == "*" || in_array($node, $selectorNodes))) {
-                if(!in_array($node, $found, true)) {
-                    $found[] = $node;
+            if($hasMatch && !in_array($parentToText, $ignoredNodes, true) && 
+                ($selector == "*" || in_array($parentToText, $selectorNodes))) {
+                if(!in_array($parentToText, $found, true)) {
+                    $found[] = $parentToText;
                 }
             }
         }
     }
+
+    // Find all inputs with type submit or button as they appear as form buttons
+    $inputNodes = $xpath->query(".//input[@type=\"submit\" or @type=\"button\"]", $container);
+    foreach($inputNodes as $inputNode) {
+        $buttonText = $inputNode->getAttribute("value");
+        $hasMatch = \pest\utils\hasTextMatch($pattern, $buttonText, $options);
+        if($hasMatch) {
+            if(!in_array($inputNode, $found, true)) {
+                $found[] = $inputNode;
+            }
+        }
+    }
+
     return $found;
 }
 
@@ -407,14 +425,14 @@ function queryAllByLabelText($container, $pattern, $options = array())
 
     // Any element with attribute aria-label, this can be used on any interactive element not
     // just those constrained by label elements
-    $inputNodes = $xpath->query(".//*[@aria-label]", $container);
-    foreach($inputNodes as $inputNode) {
-        $inputTagName = strtolower($inputNode->tagName);
-        $ariaLabel = $inputNode->getAttribute("aria-label");
+    $ariaLabelNodes = $xpath->query(".//*[@aria-label]", $container);
+    foreach($ariaLabelNodes as $node) {
+        //$inputTagName = strtolower($inputNode->tagName);
+        $ariaLabel = $node->getAttribute("aria-label");
         $hasMatch = \pest\utils\hasTextMatch($pattern, $ariaLabel, $options);
         if($hasMatch) {
-            if(!in_array($inputNode, $found, true)) {
-                $found[] = $inputNode;
+            if(!in_array($node, $found, true)) {
+                $found[] = $node;
             }
         }
     }

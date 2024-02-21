@@ -16,9 +16,10 @@ $src = <<<HTML
     <h1 role="heading">Title</h1>
     <h2>Subtitle</h2>
     <span>Some data here</span>
-    <span class="greeting f50"> hello <br> world </span>
-    <input type="text" name="age" value="50">
-    <input type="checkbox" name="active" checked>
+    <span class="greeting f50"> <br> hello <br> world </span>
+    <input type="text" name="age" value="50" />
+    <input type="checkbox" name="active" checked />
+    <input type="submit" value="Save data" />
 </div>
 HTML;
 
@@ -54,6 +55,8 @@ test("query ByText", function() use($dom) {
     $holaText = dom\queryByText($dom, "/hola mundo/i");
     expect($holaText)->not()->toBeInTheDocument();
 
+    $saveButton = dom\queryByText($dom, "Save data");
+    expect($saveButton)->toBeInTheDocument();
 });
 
 test("query ByText ignore", function() use($dom) {
