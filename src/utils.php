@@ -55,7 +55,7 @@ function hasTextMatch($pattern, $str, $options = [])
         }
     } else {
         // a valid regexp
-        $hasMatch = preg_match($pattern, $str);
+        $hasMatch = preg_match($pattern, $str) === 1;
     }
     return $hasMatch;
 }

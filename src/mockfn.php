@@ -48,7 +48,8 @@ class MockFn
 
         $this->calls[$currentCallId] = $params;
         $this->results[$currentCallId] = ["type" => "incomplete"];
-        unset($res);
+
+        $res = null;
         $result = ["type" => "return", "value" => $res];
         if(is_callable($this->callable)) {
             try {

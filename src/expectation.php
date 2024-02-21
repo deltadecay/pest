@@ -307,7 +307,7 @@ class Expectation
                 $got = $nthType." ";
                 if ($nthType == "return") {
                     $got .= $nthValue;
-                } else if ($nthType == "throw") {
+                } else if ($nthType == "throw" && ($nthValue instanceof \Exception)) {
                     $got .= get_class($nthValue)."(".$nthValue->getMessage().")";
                 }
                 throw new TestFailException($got, $value, $this->negate);
