@@ -134,7 +134,7 @@ function queryAllByText($container, $pattern, $options = array())
     }
 
     // Find all nodes that have text content
-    $nodelist = $xpath->query(".//*[string-length(text())>0]", $container);
+    $nodelist = $xpath->query(".//*[string-length(normalize-space(text()))>0]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
@@ -142,7 +142,7 @@ function queryAllByText($container, $pattern, $options = array())
         $firstNonEmptyNode = \pest\dom\getFirstNonEmptyChildNode($node);
         if($firstNonEmptyNode instanceof \DOMText) {
             // The first non empty node is a DOMText, which means content begins with text.
-            // Thus wee can be sure that contents of the node can be considered as text
+            // Thus we can be sure that contents of the node can be considered as text
             $nodeText = $node->textContent;
             $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText, $options);
             if($hasMatch && !in_array($node, $ignoredNodes, true) && 

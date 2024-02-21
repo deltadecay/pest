@@ -399,18 +399,22 @@ function getFirstNonEmptyChildNode($node)
     $found = null;
     foreach($childNodes as $childNode)
     {
-        if($childNode instanceof \DOMText) {
-            $text = trim(normalize($childNode->textContent));
+        if($childNode instanceof \DOMElement) {
+            $tagName = strtolower($childNode->tagName);
+            // br, hr are skipped since they never contain text but can appear midst test
+            if(!in_array($tagName, ["br", "hr"])) {
+                $found = $childNode;
+                break;
+            }
+        } elseif ($childNode instanceof \DOMText) {   
+            $text = normalize($childNode->textContent);
             if(strlen($text) > 0) {
                 $found = $childNode;
                 break;
             }
-        } else {
-            $found = $childNode;
-            break;
         }
     }
-    return $childNode;
+    return $found;
 }
 
 function readToken($pos, $str, $delimiters = " ,.[]():#\"'+~>")
