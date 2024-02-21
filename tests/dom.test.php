@@ -55,6 +55,22 @@ test("readToken", function() {
     expect(\pest\dom\readToken(6, "div>p.red", ".>"))->toBe("red");
 });
 
+
+test("selectNthFromExpression", function() {
+    expect(\pest\dom\selectNthFromExpression("odd", "position()"))->toBe("[(position() mod 2)=1]");
+    expect(\pest\dom\selectNthFromExpression("even", "position()"))->toBe("[(position() mod 2)=0]");
+    expect(\pest\dom\selectNthFromExpression("4", "position()"))->toBe("[4]");
+    expect(\pest\dom\selectNthFromExpression("3n+3", "position()"))->toBe("[position()>=3 and ((position()-3) mod 3)=0]");
+    expect(\pest\dom\selectNthFromExpression("3n-3", "position()"))->toBe("[((position()+3) mod 3)=0]");
+    expect(\pest\dom\selectNthFromExpression("-n+3", "position()"))->toBe("[position()<=3 and ((position()-3) mod -1)=0]");
+    expect(\pest\dom\selectNthFromExpression("0n + 2", "position()"))->toBe("[2]");
+    expect(\pest\dom\selectNthFromExpression("-2n -4", "position()"))->toBe("[false]");
+    expect(\pest\dom\selectNthFromExpression("asdasdasd", "position()"))->toBe("");
+    expect(\pest\dom\selectNthFromExpression("", "position()"))->toBe("");
+
+});
+
+
 test("cssSelectorToXPath", function() {
 
     $q = \pest\dom\cssSelectorToXPath(".red.blue");
@@ -120,6 +136,12 @@ test("cssSelectorToXPath", function() {
     $q = \pest\dom\cssSelectorToXPath("ul li:last-child");
     expect($q)->toMatch(".//ul//li[not(following-sibling::*)]");
 
+    $q = \pest\dom\cssSelectorToXPath("ul li:first-of-type");
+    expect($q)->toMatch(".//ul//li[1]");
+
+    $q = \pest\dom\cssSelectorToXPath("ul li:last-of-type");
+    expect($q)->toMatch(".//ul//li[last()]");
+
     $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(3)");
     expect($q)->toMatch(".//ul//li[3]");
 
@@ -140,6 +162,18 @@ test("cssSelectorToXPath", function() {
 
     $q = \pest\dom\cssSelectorToXPath("ul li:nth-of-type(-2n-3)");
     expect($q)->toMatch(".//ul//li[false]");
+
+    $q = \pest\dom\cssSelectorToXPath("input:checked");
+    expect($q)->toMatch(".//input[@selected or @checked]");
+
+    $q = \pest\dom\cssSelectorToXPath("button:enabled");
+    expect($q)->toMatch(".//button[@enabled]");
+
+    $q = \pest\dom\cssSelectorToXPath("button:disabled");
+    expect($q)->toMatch(".//button[@disabled]");
+
+    $q = \pest\dom\cssSelectorToXPath("span:empty");
+    expect($q)->toMatch(".//span[not(*) and not(normalize-space())]");
 });
 
 
@@ -153,6 +187,8 @@ test("querySelector", function() {
         <li>Second</li>
         <li>Third</li>
     </ul>
+    <br />
+    <p>  </p>
 HTML;
     $dom = dom\parse($src);
     expect(\pest\dom\querySelectorAll($dom, "div"))->toHaveCount(1);
@@ -169,6 +205,10 @@ HTML;
     expect(\pest\dom\querySelector($dom, "ul li:first-of-type")->textContent)->toBe("First");
     expect(\pest\dom\querySelector($dom, "ul li:last-of-type")->textContent)->toBe("Third");
     expect(\pest\dom\querySelector($dom, "*:enabled")->textContent)->toBe("X");
+    $empty = \pest\dom\querySelectorAll($dom, "*:empty");
+    expect($empty)->toHaveCount(2);
+    expect($empty[0]->tagName)->toBe("br");
+    expect($empty[1]->tagName)->toBe("p");
 });
 
 

@@ -437,7 +437,7 @@ function selectNthFromExpression($expr, $posexpr = "position()")
     // a*n op b , where op is + or -, b>=0 integer and a integer pos or neg
     $cond = "";
     unset($matches);
-    if(preg_match("/(?P<evenodd>^odd|even$)|(?P<pos>^\d+$)|(?P<anplusb>(?P<a>-?\d*)n\s*((?P<op>[-+])\s*(?P<b>\d+))?)/", $expr, $matches)) {
+    if(preg_match("/(?P<evenodd>^odd|even$)|(?P<pos>^\d+$)|(?P<anplusb>^(?P<a>-?\d*)n\s*((?P<op>[-+])\s*(?P<b>\d+))?$)/", $expr, $matches)) {
         
         if($matches["evenodd"] == "odd") {
             $cond = "[($posexpr mod 2)=1]";
@@ -617,12 +617,12 @@ function cssSelectorToXPath($selector)
                 $i += strlen($attrSpec) + 1; // +1 for ending ]
                 unset($matches);
                 // parse attribute in the form [name op "value"]
-                if(preg_match("/([a-zA-Z0-9_-]*)\s*(([\^\*\~\$|]*=)\s*[\"'](.*)[\"'])?/i", $attrSpec, $matches)) {
-                    $attrName = $matches[1];
+                if(preg_match("/(?P<name>[a-zA-Z0-9_-]*)\s*((?P<op>[\^\*\~\$|]*=)\s*[\"'](?P<value>.*)[\"'])?/i", $attrSpec, $matches)) {
+                    $attrName = $matches["name"];
                     $xpath .= $elem;
-                    if (count($matches) > 2) {
-                        $attrOp = $matches[3];
-                        $attrValue = $matches[4];
+                    if (strlen($matches["op"]) > 0) {
+                        $attrOp = $matches["op"];
+                        $attrValue = $matches["value"];
                         // Escape double quotes
                         $attrValue = str_replace('"', '\\"', $attrValue);
                         switch($attrOp[0]) {
