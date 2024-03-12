@@ -179,6 +179,7 @@ test("cssSelectorToXPath", function() {
 
 test("querySelector", function() {
     $src = <<<HTML
+<div>
     <div id="helloworld">Hello <span class="red bold">world!</span></div>
     <span>Another <span class="bold">span</span></span>
     <button title="Hell's warm" enabled>X</button>
@@ -189,9 +190,11 @@ test("querySelector", function() {
     </ul>
     <br />
     <p>  </p>
+</div>
 HTML;
     $dom = dom\parse($src);
-    expect(\pest\dom\querySelectorAll($dom, "div"))->toHaveCount(1);
+    //dom\debug($dom);
+    expect(\pest\dom\querySelectorAll($dom, "div"))->toHaveCount(2);
     expect(\pest\dom\querySelectorAll($dom, "span"))->toHaveCount(3);
     expect(\pest\dom\querySelector($dom, "#helloworld")->tagName)->toBe("div");
     expect(\pest\dom\querySelector($dom, "#helloworld")->textContent)->toBe("Hello world!");
@@ -426,9 +429,11 @@ HTML;
 
 test("accessible names: read more", function() {
     $src = <<<HTML
-<h2 id="bees-heading">7 ways you can help save the bees</h2>
-<p>Bees are disappearing rapidly. Here are seven things you can do to help.</p>
-<p><a id="bees-read-more" aria-labelledby="bees-read-more bees-heading">Read more...</a></p>
+<div>
+    <h2 id="bees-heading">7 ways you can help save the bees</h2>
+    <p>Bees are disappearing rapidly. Here are seven things you can do to help.</p>
+    <p><a id="bees-read-more" aria-labelledby="bees-read-more bees-heading">Read more...</a></p>
+</div>
 HTML;
     $dom = dom\parse($src);
     $para = \pest\dom\querySelector($dom, "#bees-read-more");

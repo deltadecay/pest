@@ -18,9 +18,9 @@ function parse($src)
     // Load content to a dummy root and specify encoding with a meta tag
     $temp_dom = new \DOMDocument();
     $loadOk = $temp_dom->loadHTML("<meta http-equiv='Content-Type' content='charset=utf-8' /><dummyroot id=\"$id\">$src</dummyroot>");
-    /*foreach(libxml_get_errors() as $error) {
-        echo "\t".$error->message.PHP_EOL;
-    }*/
+    //foreach(libxml_get_errors() as $error) {
+    //    echo "\t".$error->message.PHP_EOL;
+    //}
     libxml_clear_errors();
     if (!$loadOk)
     {
@@ -37,6 +37,22 @@ function parse($src)
     // Add it to the new dom
     $dom->appendChild($first_div_node);
     return $dom;
+
+    /*
+    libxml_use_internal_errors(true);
+    $temp_dom = new \DOMDocument();
+    $loadOk = $temp_dom->loadHTML($src, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    //foreach(libxml_get_errors() as $error) {
+    //    echo "\t".$error->message.PHP_EOL;
+    //}
+    libxml_clear_errors();
+    if (!$loadOk)
+    {
+        echo "Failed to load html".PHP_EOL;
+        return null;
+    }
+    return $temp_dom;
+    */
 }
 
 function debug(\DOMDocument $dom)
@@ -45,6 +61,8 @@ function debug(\DOMDocument $dom)
     $dom->formatOutput = true;
     // Remove the dummy root that we added in parse
     $str = substr($dom->saveHtml(), strlen("<dummyroot id=\"$id\">"), -(strlen("</dummyroot>")+1));
+    
+    //$str = $dom->saveHtml();
     echo $str;
 }
 
@@ -114,21 +132,32 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
         return "";
     }
     $tagName = strtolower($node->tagName);
-    $accName = "";
 
-    if($node->hasAttribute("aria-labelledby") && $traversal['aria-labelledby']==0) {
+    if(!isset($traversal['aria-labelledby'])) {
+        $traversal['aria-labelledby'] = 0;
+    }
+    if(!isset($traversal['label'])) {
+        $traversal['label'] = 0;
+    }
+    if(!isset($traversal['source'])) {
+        $traversal['source'] = null;
+    }
+
+    if($node->hasAttribute("aria-labelledby") && ($traversal['aria-labelledby']==0)) {
         // Note! aria-labelledby can be a space separated list
         $ids = explode(" ", $node->getAttribute("aria-labelledby"));
         $accNames = [];
         foreach($ids as $id) {
             $refNameNodes = $xpath->query("//*[@id='".$id."']");
             $traversal['source'] = $node;
+
             $traversal['aria-labelledby']++;
             foreach($refNameNodes as $refNameNode) {
                 $accNames[] = normalize(computeAccessibleName($refNameNode, $traversal));
             }
             $traversal['aria-labelledby']--;
-            unset($traversal['source']);
+            //unset($traversal['source']);
+            $traversal['source'] = null;
         }
         // join with space according to doc 2.B.ii.c
         $joinedName = trim(implode(" ", $accNames));
@@ -151,17 +180,19 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
         return "";
     }
 
-    if($node->hasAttribute("id") && $traversal['label']==0) {
+    if($node->hasAttribute("id") && ($traversal['label']==0)) {
         $id = $node->getAttribute("id");   
         $labelNodes = $xpath->query("//label[@for='".$id."']");
         $accNames = [];
         $traversal['source'] = $node;
+
         $traversal['label']++;
         foreach($labelNodes as $labelNode) {
             $accNames[] = normalize(computeAccessibleName($labelNode, $traversal));
         }
         $traversal['label']--;
-        unset($traversal['source']);
+        //unset($traversal['source']);
+        $traversal['source'] = null;
         // join with space according to doc 2.B.ii.c
         $joinedName = trim(implode(" ", $accNames));
         if(strlen($joinedName)>0) {
@@ -175,11 +206,13 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
         if(isValidInputElements($tagName)) {
             $accNames = [];
             $traversal['source'] = $node;
+
             $traversal['label']++;
             $labelNode = $node->parentNode;
             $accNames[] = normalize(computeAccessibleName($labelNode, $traversal));
             $traversal['label']--;
-            unset($traversal['source']);
+            //unset($traversal['source']);
+            $traversal['source'] = null;
             // join with space according to doc 2.B.ii.c
             $joinedName = trim(implode(" ", $accNames));
             if(strlen($joinedName)>0) {
@@ -227,7 +260,7 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
     }
 
     // If naming from label then traverse its children
-    if ($traversal['aria-labelledby'] || $traversal['label']) {
+    if ((isset($traversal['aria-labelledby']) && $traversal['aria-labelledby']>0) || (isset($traversal['label']) && $traversal['label']>0)) {
         $accNames = [];
         foreach($node->childNodes as $childNode) {
             // Traverse child nodes as long as they are not the source of recursion (avoid loops)
@@ -463,8 +496,8 @@ function selectNthFromExpression($expr, $posexpr = "position()")
                 $a = intval($matches["a"]);
             }
             
-            $b = strlen($matches["b"])>0 ? intval($matches["b"]) : 0;
-            $op = $matches["op"] == "-" ? "-" : "+";
+            $b = isset($matches["b"]) && strlen($matches["b"])>0 ? intval($matches["b"]) : 0;
+            $op = isset($matches["op"]) && $matches["op"] == "-" ? "-" : "+";
             
             if($a == 0 && $op == "+") {
                 if($posexpr == "position()") {
@@ -624,7 +657,7 @@ function cssSelectorToXPath($selector)
                 if(preg_match("/(?P<name>[a-zA-Z0-9_-]*)\s*((?P<op>[\^\*\~\$|]*=)\s*[\"'](?P<value>.*)[\"'])?/i", $attrSpec, $matches)) {
                     $attrName = $matches["name"];
                     $xpath .= $elem;
-                    if (strlen($matches["op"]) > 0) {
+                    if (isset($matches["op"]) && strlen($matches["op"]) > 0) {
                         $attrOp = $matches["op"];
                         $attrValue = $matches["value"];
                         // Escape double quotes

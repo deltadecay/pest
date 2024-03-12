@@ -302,7 +302,7 @@ class Expectation
             $nthValue = $results[$nthCall]['value'];
             $nthType = $results[$nthCall]['type'];
 
-            if(!$this->holds($nthValue == $value && $nthType == "return"))
+            if(!$this->holds($nthType == "return" && $nthValue == $value))
             {
                 $got = $nthType." ";
                 if ($nthType == "return") {

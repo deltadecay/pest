@@ -30,7 +30,7 @@ function getDefaultNormalizer($options = [])
 function hasTextMatch($pattern, $str, $options = []) 
 {
     $exact = isset($options['exact']) ? $options['exact'] : true;
-    $normalizer = is_callable($options['normalizer']) ? $options['normalizer'] : getDefaultNormalizer($options);
+    $normalizer = isset($options['normalizer']) && is_callable($options['normalizer']) ? $options['normalizer'] : getDefaultNormalizer($options);
 
     if ($str === null) {
         return false;

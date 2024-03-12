@@ -42,7 +42,7 @@ function queryAllByRole($container, $role, $options = array())
     if(is_array($elementsToFind)) {
         foreach($elementsToFind as $elem) {
             $name = $elem['name'];
-            if(count($elem['attributes']) > 0) {
+            if(isset($elem['attributes']) && count($elem['attributes']) > 0) {
                 // Search by name and attribute
                 foreach($elem['attributes'] as $attr) {
                     $attrName = $attr['name'];

@@ -48,12 +48,10 @@ function getRoleElementsMap()
 
 function getElementsForRole($role)
 {
+    $role = strtolower($role);
     $map = getRoleElementsMap();
-    $elements = $map[strtolower($role)];
-    if(is_array($elements)) {
-        return $elements;
-    }
-    return [];
+    $elements = isset($map[$role]) ? $map[$role] : [];
+    return $elements;
 } 
 
 // Elements to possible roles
@@ -122,12 +120,10 @@ function getElementRoleMap()
 
 function getRolesForElement($tagName)
 {
+    $tagName = strtolower($tagName);
     $map = getElementRoleMap();
-    $roles = $map[strtolower($tagName)];
-    if(is_array($roles)) {
-        return $roles;
-    }
-    return [];
+    $roles = isset($map[$tagName]) ? $map[$tagName] : [];
+    return $roles;
 } 
 
 // Check if a role supports computing accessible name from content (child nodes)
@@ -154,5 +150,5 @@ function isRoleSupportingNameFromContent($role)
         "tooltip" => 1,
         "treeitem" => 1
     ];
-    return $roles[$role] == 1;
+    return isset($roles[$role]) ? $roles[$role] == 1 : false;
 }
