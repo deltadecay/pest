@@ -70,3 +70,15 @@ test("hasTextMatch normalize", function() {
 
 });
 
+
+test("base64url_encode", function() {
+    expect(\pest\utils\base64url_encode(""))->toBe("");
+    expect(base64_encode("hello world"))->toBe("aGVsbG8gd29ybGQ=");
+    expect(\pest\utils\base64url_encode("hello world"))->toBe("aGVsbG8gd29ybGQ");
+});
+
+test("base64url_decode", function() {
+    expect(\pest\utils\base64url_decode(""))->toBe("");
+    expect(base64_decode("aGVsbG8gd29ybGQ="))->toBe("hello world");
+    expect(\pest\utils\base64url_decode("aGVsbG8gd29ybGQ"))->toBe("hello world");
+});

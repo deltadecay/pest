@@ -11,13 +11,14 @@ use \Exception;
 function parse($src) 
 {
     $id = "_pest_root";
+    /*
     //$dom = new \DOMDocument();
     //$dom->loadHTML($src);  
     libxml_use_internal_errors(true);
 
     // Load content to a dummy root and specify encoding with a meta tag
     $temp_dom = new \DOMDocument();
-    $loadOk = $temp_dom->loadHTML("<meta http-equiv='Content-Type' content='charset=utf-8' /><dummyroot id=\"$id\">$src</dummyroot>");
+    $loadOk = $temp_dom->loadHTML("<meta http-equiv='Content-Type' content='charset=utf-8' /><dummypestroot id=\"$id\">$src</dummypestroot>");
     //foreach(libxml_get_errors() as $error) {
     //    echo "\t".$error->message.PHP_EOL;
     //}
@@ -31,17 +32,17 @@ function parse($src)
     // As loadHTML() adds a DOCTYPE as well as <html> and <body> tag, 
     // create another DOMDocument and import just the nodes we want
     $dom = new \DOMDocument();
-    $first_div = iterator_to_array($temp_dom->getElementsByTagName('dummyroot'))[0];
+    $first_div = iterator_to_array($temp_dom->getElementsByTagName('dummypestroot'))[0];
     // Imports and returns the copy
     $first_div_node = $dom->importNode($first_div, true);
     // Add it to the new dom
     $dom->appendChild($first_div_node);
     return $dom;
-
-    /*
+*/
+    
     libxml_use_internal_errors(true);
-    $temp_dom = new \DOMDocument();
-    $loadOk = $temp_dom->loadHTML($src, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+    $dom = new \DOMDocument();
+    $loadOk = $dom->loadHTML("<dummypestroot id=\"$id\">$src</dummypestroot>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
     //foreach(libxml_get_errors() as $error) {
     //    echo "\t".$error->message.PHP_EOL;
     //}
@@ -51,8 +52,7 @@ function parse($src)
         echo "Failed to load html".PHP_EOL;
         return null;
     }
-    return $temp_dom;
-    */
+    return $dom;
 }
 
 function debug(\DOMDocument $dom)
@@ -60,7 +60,7 @@ function debug(\DOMDocument $dom)
     $id = "_pest_root";
     $dom->formatOutput = true;
     // Remove the dummy root that we added in parse
-    $str = substr($dom->saveHtml(), strlen("<dummyroot id=\"$id\">"), -(strlen("</dummyroot>")+1));
+    $str = substr($dom->saveHtml(), strlen("<dummypestroot id=\"$id\">"), -(strlen("</dummypestroot>")+1));
     
     //$str = $dom->saveHtml();
     echo $str;
@@ -295,12 +295,152 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
 function isValidInputElements($node)
 {
     if($node instanceof \DOMElement) {
-        $node = strtolower($node->tagName);
+        $tagName = strtolower($node->tagName);
     } else {
-        $node = strtolower("$node");
+        $tagName = strtolower("$node");
     }
-    return in_array($node, ["input", "select", "textarea", "meter", "progress"]);
+    return in_array($tagName, ["input", "select", "textarea", "meter", "progress"]);
 }
+
+
+function isHtmlTag($node) 
+{
+    if($node instanceof \DOMElement) {
+        $tagName = strtolower($node->tagName);
+    } else {
+        $tagName = strtolower("$node");
+    }
+
+    $tags = [
+        "a" => 1, 
+        "abbr" => 1, 
+        "acronym" => 1, 
+        "address" => 1, 
+        "applet" => 1, 
+        "area" => 1, 
+        "article" => 1, 
+        "aside" => 1, 
+        "audio" => 1, 
+        "b" => 1, 
+        "base" => 1, 
+        "basefont" => 1, 
+        "bdi" => 1, 
+        "bdo" => 1, 
+        "big" => 1, 
+        "blockquote" => 1, 
+        "body" => 1, 
+        "br" => 1, 
+        "button" => 1, 
+        "canvas" => 1, 
+        "caption" => 1, 
+        "center" => 1, 
+        "cite" => 1, 
+        "code" => 1, 
+        "col" => 1, 
+        "colgroup" => 1, 
+        "data" => 1, 
+        "datalist" => 1, 
+        "dd" => 1, 
+        "del" => 1, 
+        "details" => 1, 
+        "dfn" => 1, 
+        "dialog" => 1, 
+        "dir" => 1, 
+        "div" => 1, 
+        "dl" => 1, 
+        "dt" => 1, 
+        "em" => 1, 
+        "embed" => 1, 
+        "fieldset" => 1, 
+        "figcaption" => 1, 
+        "figure" => 1, 
+        "font" => 1, 
+        "footer" => 1, 
+        "form" => 1, 
+        "frame" => 1, 
+        "frameset" => 1, 
+        "h1" => 1,
+        "h2" => 1,
+        "h3" => 1,
+        "h4" => 1,
+        "h5" => 1,
+        "h6" => 1, 
+        "head" => 1, 
+        "header" => 1, 
+        "hgroup" => 1, 
+        "hr" => 1, 
+        "html" => 1, 
+        "i" => 1, 
+        "iframe" => 1, 
+        "img" => 1, 
+        "input" => 1, 
+        "ins" => 1, 
+        "kbd" => 1, 
+        "label" => 1, 
+        "legend" => 1, 
+        "li" => 1, 
+        "link" => 1, 
+        "main" => 1, 
+        "map" => 1, 
+        "mark" => 1, 
+        "menu" => 1, 
+        "meta" => 1, 
+        "meter" => 1, 
+        "nav" => 1, 
+        "noframes" => 1, 
+        "noscript" => 1, 
+        "object" => 1, 
+        "ol" => 1, 
+        "optgroup" => 1, 
+        "option" => 1, 
+        "output" => 1, 
+        "p" => 1, 
+        "param" => 1, 
+        "picture" => 1, 
+        "pre" => 1, 
+        "progress" => 1, 
+        "q" => 1, 
+        "rp" => 1, 
+        "rt" => 1, 
+        "ruby" => 1, 
+        "s" => 1, 
+        "samp" => 1, 
+        "script" => 1, 
+        "search" => 1, 
+        "section" => 1, 
+        "select" => 1, 
+        "small" => 1, 
+        "source" => 1, 
+        "span" => 1, 
+        "strike" => 1, 
+        "strong" => 1, 
+        "style" => 1, 
+        "sub" => 1, 
+        "summary" => 1, 
+        "sup" => 1, 
+        "svg" => 1, 
+        "table" => 1, 
+        "tbody" => 1, 
+        "td" => 1, 
+        "template" => 1, 
+        "textarea" => 1, 
+        "tfoot" => 1, 
+        "th" => 1, 
+        "thead" => 1, 
+        "time" => 1, 
+        "title" => 1, 
+        "tr" => 1, 
+        "track" => 1, 
+        "tt" => 1, 
+        "u" => 1, 
+        "ul" => 1, 
+        "var" => 1, 
+        "video" => 1, 
+        "wbr" => 1,
+    ];
+    return isset($tags[$tagName]) ? $tags[$tagName] === 1 : false;
+}
+
 
 function isElementHidden(\DOMElement $node)
 {
