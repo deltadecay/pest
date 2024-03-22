@@ -20,9 +20,10 @@ function Thumbnail($props)
     $avatar_ref = $props["avatar"];
     $avatar = $avatar_ref->current;
  
+    $title = htmlspecialchars($avatar["name"]);
     $str = <<<HTML
     <div>
-      <img src="$avatar[image]" />
+      <img src="$avatar[image]" alt="$title" title="$title" />
     </div>
 HTML;
     return $str;
@@ -92,4 +93,10 @@ test("Avatar component renders", function() {
     // Testing implementation, not recommended, but can be done 
     $thelink = \pest\dom\querySelector($comp, "div > a");
     expect($thelink->getAttribute("href"))->toBe("https://gravatar.com/deba31bcb20d91f4cb343c8cda1337bdb9ed53ed8aa0cf79a9a2e37956748181");
+
+    $button = \pest\dom\queryByRole($comp, "button", ["name" => "Contact"]);
+    expect($button)->toBeInTheDocument();
+
+    $img = \pest\dom\queryByRole($comp, "img", ["name" => "/Tin Rust-Bot/"]);
+    expect($img)->toBeInTheDocument();
 });
