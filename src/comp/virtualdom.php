@@ -43,7 +43,7 @@ class VirtualDOM
 
         
         $this->dom->formatOutput = false;
-        $this->dom->preserveWhitespace = false;
+        //$this->dom->preserveWhitespace = false;
 
         $dummy_root = $this->dom->documentElement;
         $rootname = $dummy_root->nodeName;

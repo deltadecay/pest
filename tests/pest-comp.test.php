@@ -59,8 +59,7 @@ HTML;
 };
 
 
-
-function AvatarApp()
+function getAvatarData()
 {
     $avatar = [
         "id" => "a4185ae3-d757-429b-97fe-6fffdab5d037", 
@@ -69,6 +68,12 @@ function AvatarApp()
         "name" => "Tin Rust-Bot",
         "description" => "Alien robot in space. Beeeep! Boooop!",
     ];
+    return $avatar;
+}
+
+function AvatarApp()
+{
+    $avatar = getAvatarData();
     $avatar_ref = makeRef($avatar);
     return "<Avatar avatar=\"$avatar_ref\" />";
 }
@@ -83,4 +88,8 @@ test("Avatar component renders", function() {
     $heading = \pest\dom\queryByRole($comp, "heading", ["name" => "/Tin Rust-Bot/"]);
     //expect($heading)->toHaveTextContent("/Tin Rust-Bot/");
     expect($heading)->toBeInTheDocument();
+
+    // Testing implementation, not recommended, but can be done 
+    $thelink = \pest\dom\querySelector($comp, "div > a");
+    expect($thelink->getAttribute("href"))->toBe("https://gravatar.com/deba31bcb20d91f4cb343c8cda1337bdb9ed53ed8aa0cf79a9a2e37956748181");
 });
