@@ -210,7 +210,7 @@ class Expectation
 
     public function toHaveCount($number)
     {
-        if (is_array($this->value) || $this->value instanceof Countable) {
+        if (is_array($this->value) || $this->value instanceof \Countable) {
             $cnt = count($this->value);
             if(!$this->holds($cnt === $number))
             {
