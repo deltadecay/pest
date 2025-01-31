@@ -32,7 +32,7 @@ class DOMExpectation extends \pest\Expectation
             $hasMatch = \pest\utils\hasTextMatch($pattern, $text);
             if(!$this->holds($hasMatch))
             {
-                throw new TestFailException(null, $pattern, $this->negate);
+                throw new TestFailException($text, $pattern, $this->negate);
             }
         } else {
             throw new TestFailException($this->value, "DOMNode", false);
