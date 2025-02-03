@@ -137,6 +137,8 @@ test("check persons in list", function() {
     expect($people)->toContain($peter);
     expect($people)->not()->toContain($charlie);
     expect($people)->not()->toContain(["name" => "Bob"]);
+    expect($peter)->toBeInArray($people);
+    expect($charlie)->not()->toBeInArray($people);
 });
 
 test("arrays", function() {

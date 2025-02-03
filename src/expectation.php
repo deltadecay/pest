@@ -54,6 +54,18 @@ class Expectation
         }
     }
 
+    public function toBeInArray($items) 
+    {
+        if(is_array($items)) {
+            if(!$this->holds(in_array($this->value, $items, true)))
+            {
+                throw new TestFailException($this->value, $items, $this->negate);
+            }
+        } else {
+            throw new TestFailException($items, "array", false);
+        }
+    }
+
     public function toBeCloseTo($expected, $numDigits=2)
     {
         $epsilon = pow(10, -$numDigits) / 2;
