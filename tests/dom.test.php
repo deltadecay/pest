@@ -16,7 +16,16 @@ test("parse", function() {
     <div id="helloworld">Hello world!</div>
 HTML;
     $dom = dom\parse($src);
-    expect($dom instanceof \DOMDocument)->toBeTruthy();
+    if(PHP_VERSION_ID >= 80400)
+    {
+        // In php 8.4, there is a new html5 compliant doc of type \Dom\HTMLDocument
+        // which parse now supports
+        expect($dom instanceof \Dom\Document)->toBeTruthy();
+    } 
+    else 
+    {
+        expect($dom instanceof \DOMDocument)->toBeTruthy();
+    }
     $hello = $dom->getElementById("helloworld");
     expect($hello)->not()->toBeNull();
     expect($hello->textContent)->toMatch("Hello world!");

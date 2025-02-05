@@ -8,7 +8,7 @@ require_once(__DIR__."/../utils.php");
 use function \pest\utils\normalize;
 use \Exception;
 
-function parse($src) 
+function parse($src, $olddom=false) 
 {
     $id = "_pest_root";
     /*
@@ -39,31 +39,55 @@ function parse($src)
     $dom->appendChild($first_div_node);
     return $dom;
 */
-    
-    libxml_use_internal_errors(true);
-    $dom = new \DOMDocument();
-    $loadOk = $dom->loadHTML("<dummypestroot id=\"$id\">$src</dummypestroot>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
-    //foreach(libxml_get_errors() as $error) {
-    //    echo "\t".$error->message.PHP_EOL;
-    //}
-    libxml_clear_errors();
+    $loadOk  = false;
+    if(PHP_VERSION_ID < 80400 || $olddom) 
+    {
+        libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        $loadOk = $dom->loadHTML("<dummypestroot id=\"$id\">$src</dummypestroot>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        //foreach(libxml_get_errors() as $error) {
+        //    echo "\t".$error->message.PHP_EOL;
+        //}
+        libxml_clear_errors();
+    }
+    else
+    {
+        //$dom = \Dom\HTMLDocument::createFromString("<dummypestroot id=\"$id\">$src</dummypestroot>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        $dom = \Dom\HTMLDocument::createFromString("<dummypestroot id=\"$id\">$src</dummypestroot>", LIBXML_NOERROR | LIBXML_HTML_NOIMPLIED | \Dom\HTML_NO_DEFAULT_NS );
+        $loadOk = $dom instanceof \Dom\HTMLDocument;
+    }
     if (!$loadOk)
     {
         echo "Failed to load html".PHP_EOL;
         return null;
     }
+
     return $dom;
 }
 
-function debug(\DOMDocument $dom)
+function debug($dom)
 {
     $id = "_pest_root";
-    $dom->formatOutput = true;
-    // Remove the dummy root that we added in parse
-    $str = substr($dom->saveHtml(), strlen("<dummypestroot id=\"$id\">"), -(strlen("</dummypestroot>")+1));
-    
+
+    $str = '';
+    if($dom instanceof \DOMDocument)
+    {
+        $dom->formatOutput = true;
+        // Remove the dummy root that we added in parse
+        $str = substr($dom->saveHtml(), strlen("<dummypestroot id=\"$id\">"), -(strlen("</dummypestroot>")+1));
+    }
+    if (PHP_VERSION_ID >= 80400) 
+    {
+        if($dom instanceof \Dom\HTMLDocument)
+        {
+            //$dom->formatOutput = true;
+            // Remove the dummy root that we added in parse
+            $str = substr($dom->saveHtml(), strlen("<dummypestroot id=\"$id\">"), -(strlen("</dummypestroot>")+1));
+            //$str = $dom->saveHtml();
+        }
+    }
     //$str = $dom->saveHtml();
-    echo $str;
+    echo $str.PHP_EOL;
 }
 
 
@@ -101,15 +125,23 @@ function expectOnlyOne($found, $type="some", $pattern="value")
 
 /**
  * Get the DOM document for a node.
- * @param \DOMNode The node
- * @return \DOMDocument The document
+ * @param mixed The node
+ * @return \DOMDocument|\Dom\Document The document
  */
-function getDocument(\DOMNode $node)
+function getDocument($node)
 {
     if($node instanceof \DOMDocument) {
         $doc = $node;
-    } else {
+    } elseif($node instanceof \DOMNode) {
         $doc = $node->ownerDocument;    
+    }
+    if(PHP_VERSION_ID >= 80400)
+    {
+        if($node instanceof \Dom\Document) {
+            $doc = $node;
+        } elseif($node instanceof \Dom\Node) {
+            $doc = $node->ownerDocument;    
+        }
     }
     if($doc == null) {
         throw new Exception("No owner document for node");
@@ -117,18 +149,71 @@ function getDocument(\DOMNode $node)
     return $doc;
 }
 
-function computeAccessibleName(\DOMNode $node, $traversal = []) 
+
+function getXPath($node)
+{
+    $dom = getDocument($node);  
+    $xpath = null;
+    if($dom instanceof \DOMDocument) 
+    {
+        $xpath = new \DOMXPath($dom);
+    }
+    if(PHP_VERSION_ID >= 80400)
+    {
+        if($dom instanceof \Dom\HTMLDocument) 
+        {
+            $xpath = new \Dom\XPath($dom);
+        }
+    }
+    if($xpath == null)
+    {
+        throw new Exception("Could not create an XPath instance for the document");
+    }
+    return $xpath;
+}
+
+function isDomNode($node)
+{
+    $isnode = $node instanceof \DOMNode;
+    if(PHP_VERSION_ID >= 80400)
+    {
+        $isnode = $isnode || $node instanceof \Dom\Node;
+    }
+    return $isnode;
+}
+
+function isDomText($node)
+{
+    $istext = $node instanceof \DOMText;
+    if(PHP_VERSION_ID >= 80400)
+    {
+        $istext = $istext || $node instanceof \Dom\Text;
+    }
+    return $istext;
+}
+
+function isDomElement($node)
+{
+    $iselement = $node instanceof \DOMElement;
+    if(PHP_VERSION_ID >= 80400)
+    {
+        $iselement = $iselement || $node instanceof \Dom\Element;
+    }
+    return $iselement;
+}
+
+function computeAccessibleName($node, $traversal = []) 
 {
     // TODO See https://www.w3.org/TR/accname-1.1/#mapping_additional_nd
     $dom = getDocument($node);    
-    $xpath = new \DOMXPath($dom);
+    $xpath = getXPath($dom);
 
-    if ($node instanceof \DOMText) {
+    if (isDomText($node)) {
         $text = normalize($node->textContent);
         return $text;
     }
 
-    if (!($node instanceof \DOMElement)) {
+    if (!isDomElement($node)) {
         return "";
     }
     $tagName = strtolower($node->tagName);
@@ -200,7 +285,7 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
         }   
     }
 
-    if($node->parentNode != null && ($node->parentNode instanceof \DOMElement) && 
+    if($node->parentNode != null && (isDomElement($node)) && 
         $node->parentNode->tagName == "label") {
         // If a label is the direct parent node and current node is a form input
         if(isValidInputElements($tagName)) {
@@ -294,7 +379,7 @@ function computeAccessibleName(\DOMNode $node, $traversal = [])
 
 function isValidInputElements($node)
 {
-    if($node instanceof \DOMElement) {
+    if(isDomElement($node)) {
         $tagName = strtolower($node->tagName);
     } else {
         $tagName = strtolower("$node");
@@ -305,7 +390,7 @@ function isValidInputElements($node)
 
 function isHtmlTag($node) 
 {
-    if($node instanceof \DOMElement) {
+    if(isDomElement($node)) {
         $tagName = strtolower($node->tagName);
     } else {
         $tagName = strtolower("$node");
@@ -442,11 +527,15 @@ function isHtmlTag($node)
 }
 
 
-function isElementHidden(\DOMElement $node)
+function isElementHidden($node)
 {
-    // Check style for css which hides thee element
+    if(!isDomElement(($node)))
+    {
+        return false;
+    }
+    // Check style for css which hides the element
     $style = $node->getAttribute("style");
-    if(strlen($style) > 0) {
+    if($style !== null && strlen($style) > 0) {
         if(preg_match("/display\:\s*none\s*\;/i", $style)) {
             // display: none;
             return true;
@@ -460,26 +549,38 @@ function isElementHidden(\DOMElement $node)
     return getBoolAttribute($node, "hidden");
 }
 
-function getBoolAttribute(\DOMElement $element, $attr)
+function getBoolAttribute($element, $attr)
 {
+    if(!isDomElement(($element)))
+    {
+        return false;
+    }
     if($element->hasAttribute($attr)) {
+        /*
         // attr selected returns 'selected'
         // attr selected='' return ''
         // attr selected='false' return false
         $val = $element->getAttribute($attr);
         return ($val == $attr || strtolower($val) == "true" || $val == "1");
+        */
+        // According to HTML5: as long as the attribute exists it is true
+        // even if set selected="false"
+        return true;
     }
     return false;
 }
 
-function getInputValue(\DOMElement $input) 
+function getInputValue($input) 
 {
+    if(!isDomElement(($input)))
+    {
+        return null;
+    }
     $type = strtolower($input->getAttribute("type"));
     if ($type == "number") {
         // If number, coerce to number by adding zero
         $value = $input->hasAttribute("value") ? ($input->getAttribute("value") + 0) : null;
     } else if ($type == "checkbox") {
-        //$value = $input->hasAttribute("checked");
         $value = getBoolAttribute($input, "checked");
     } else {
         $value = $input->getAttribute("value");
@@ -487,13 +588,17 @@ function getInputValue(\DOMElement $input)
     return $value;
 }
 
-function getSelectValue(\DOMElement $select, $options = [])
+function getSelectValue($select, $options = [])
 {
+    if(!isDomElement(($select)))
+    {
+        return null;
+    }
     $displayValue = isset($options['displayValue']) ? $options['displayValue'] : false;
     //$multiple = $select->hasAttribute("multiple");
     $multiple = getBoolAttribute($select, "multiple");
     $dom = getDocument($select);    
-    $xpath = new \DOMXPath($dom);
+    $xpath = getXPath($dom);
     
     $optionNodes = iterator_to_array($xpath->query(".//option", $select));
 
@@ -538,7 +643,7 @@ function getElementValue($node, $options = [])
     }
 
     $value = null;
-    if($node instanceof \DOMElement) {
+    if(isDomElement($node)) {
         $tagName = strtolower($node->tagName);
         if ($tagName == "input") {
             $value = getInputValue($node);
@@ -550,10 +655,20 @@ function getElementValue($node, $options = [])
                 $value = $node->getAttribute("value");
             } else {
                 $value = $node->nodeValue;
+                if ($value === null) {
+                    // In new \Dom\Element nodeValue is null but textContent not
+                    $value = $node->textContent;
+                }
             }
         }
-    } else if ($node instanceof \DOMNode) {
+    } else if (isDomText($node)) {
+        $value = $node->textContent;
+    } else if (isDomNode($node)) {
         $value = $node->nodeValue;
+        if ($value === null) {
+            // In new \Dom\Element nodeValue is null but textContent not
+            $value = $node->textContent;
+        }
     }
     return $value;
 }
@@ -562,24 +677,33 @@ function getElementValue($node, $options = [])
 
 function getFirstNonEmptyChildNode($node) 
 {
-    if(!isset($node)) {
+    if(!isset($node)) 
+    {
         return null;
     }
-    if(!isset($node->childNodes)) {
+    if(!isDomNode($node))
+    {
+        return null;
+    }
+    if(!isset($node->childNodes)) 
+    {
         return null;
     }
     $childNodes = iterator_to_array($node->childNodes);
     $found = null;
     foreach($childNodes as $childNode)
     {
-        if($childNode instanceof \DOMElement) {
+        if(isDomElement($childNode)) 
+        {
             $tagName = strtolower($childNode->tagName);
             // br, hr are skipped since they never contain text but can appear midst test
             if(!in_array($tagName, ["br", "hr"])) {
                 $found = $childNode;
                 break;
             }
-        } elseif ($childNode instanceof \DOMText) {   
+        } 
+        elseif (isDomText($childNode)) 
+        {   
             $text = normalize($childNode->textContent);
             if(strlen($text) > 0) {
                 $found = $childNode;
@@ -716,6 +840,7 @@ function cssSelectorToXPath($selector)
                         break;
                     case "empty":
                         $xpath .= $elem."[not(*) and not(normalize-space())]";
+                        #$xpath .= $elem."[not(*)]";
                         $elem = "";
                         break;
                     case "nth-of-type":
@@ -873,18 +998,42 @@ function cssSelectorToXPath($selector)
 }
 
 
-function querySelectorAll(\DOMNode $node, $selector) 
+function querySelectorAll($node, $selector) 
 {
     $dom = getDocument($node);    
-    $xpath = new \DOMXPath($dom);
+    $elements = [];
+    
+    $xpath = getXPath($dom);
 
     $q = cssSelectorToXPath($selector);
     $elements = iterator_to_array($xpath->query($q, $node));
+
+    /*if($dom instanceof \DOMDocument)
+    {
+        $xpath = new \DOMXPath($dom);
+
+        $q = cssSelectorToXPath($selector);
+        $elements = iterator_to_array($xpath->query($q, $node));
+    }
+    if(PHP_VERSION_ID >= 80400)
+    {
+        if($dom instanceof \Dom\Document)
+        {
+            $xpath = new \Dom\XPath($dom);
+
+            $q = cssSelectorToXPath($selector);
+            $elements = iterator_to_array($xpath->query($q, $node));
+            
+            // The new querySelector chooses *:enabled all elements
+            // but above xpath //*[@nabled]
+            //$elements = iterator_to_array($dom->querySelectorAll($selector));
+        }
+    }*/
     return $elements;
 }
 
 
-function querySelector(\DOMNode $node, $selector) 
+function querySelector($node, $selector) 
 {
     $elements = querySelectorAll($node, $selector);
     if(count($elements) > 0) {

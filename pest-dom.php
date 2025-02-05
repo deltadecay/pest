@@ -26,7 +26,7 @@ function expect($value)
 function queryAllByRole($container, $role, $options = array())
 {
     $dom = getDocument($container);
-    $xpath = new DOMXPath($dom);
+    $xpath = getXPath($dom);
     $found = [];
 
     // Find elements with aria role
@@ -119,7 +119,7 @@ function queryAllByText($container, $pattern, $options = array())
     $selector = isset($options['selector']) ? trim($options['selector']) : "*";
 
     $dom = getDocument($container);
-    $xpath = new DOMXPath($dom);
+    $xpath = getXPath($dom);
 
     $ignoredNodes = [];
     if (strlen($ignore) > 0) {
@@ -141,11 +141,11 @@ function queryAllByText($container, $pattern, $options = array())
     foreach($nodelist as $node) {
         //$tagName = strtolower($node->tagName);
         $parentToText = $node;
-        if($node instanceof \DOMText) {
+        if(isDomText($node)) {
             $parentToText = $node->parentNode;
         }
         $firstNonEmptyNode = \pest\dom\getFirstNonEmptyChildNode($parentToText);
-        if($firstNonEmptyNode instanceof \DOMText) {
+        if(isDomText($firstNonEmptyNode)) {
             // The first non empty node is a DOMText, which means content begins with text.
             // Thus we can be sure that contents of the node can be considered as text
             $nodeText = $parentToText->textContent;
@@ -204,14 +204,14 @@ function getByText($container, $pattern, $options = array())
 function queryAllByTestId($container, $pattern, $options = array())
 {
     $dom = getDocument($container);
-    $xpath = new DOMXPath($dom);
+    $xpath = getXPath($dom);
 
     // Find all nodes that have attribute data-testid
     $nodelist = $xpath->query(".//*[@data-testid]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
-        if($node instanceof \DOMElement) {
+        if(isDomElement($node)) {
             $testId = $node->getAttribute("data-testid");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $testId, $options);
             if($hasMatch) {
@@ -251,13 +251,13 @@ function getByTestId($container, $pattern, $options = array())
 function queryAllByTitle($container, $pattern, $options = array())
 {
     $dom = getDocument($container);
-    $xpath = new DOMXPath($dom);
+    $xpath = getXPath($dom);
 
     // Find all nodes that have attribute title
     $nodelist = $xpath->query(".//*[@title]", $container);
     $found = [];
     foreach($nodelist as $node) {
-        if($node instanceof \DOMElement) {
+        if(isDomElement($node)) {
             $title = $node->getAttribute("title");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $title, $options);
             if($hasMatch) {
@@ -313,7 +313,7 @@ function getByTitle($container, $pattern, $options = array())
 function queryAllByAltText($container, $pattern, $options = array())
 {
     $dom = getDocument($container);
-    $xpath = new DOMXPath($dom);
+    $xpath = getXPath($dom);
 
     // Find all nodes that have attribute alt 
     $nodelist = $xpath->query(".//*[@alt]", $container);
@@ -322,7 +322,7 @@ function queryAllByAltText($container, $pattern, $options = array())
     foreach($nodelist as $node) {
         $tagName = strtolower($node->tagName);
         // alt attribute only accepted in img, input, area
-        if(($node instanceof \DOMElement) && in_array($tagName, ["img", "input", "area"])) {
+        if(isDomElement($node) && in_array($tagName, ["img", "input", "area"])) {
             $alt = $node->getAttribute("alt");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $alt, $options);
             if($hasMatch) {
@@ -367,7 +367,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
     $selector = isset($options['selector']) ? trim($options['selector']) : "*";
 
     $dom = getDocument($container);
-    $xpath = new DOMXPath($dom);
+    $xpath = getXPath($dom);
 
     $selectorNodes = [];
     if (strlen($selector) > 0) {
@@ -384,10 +384,10 @@ function queryAllByLabelText($container, $pattern, $options = array())
         $text = $labelNode->textContent; 
         $hasMatch = \pest\utils\hasTextMatch($pattern, $text, $options);
 
-        if(($labelNode instanceof \DOMElement) && $hasMatch) {
+        if(isDomElement($labelNode) && $hasMatch) {
             $for = $labelNode->getAttribute("for");
             $id = $labelNode->getAttribute("id");
-            if(strlen($for) > 0) {
+            if($for !== null && strlen($for) > 0) {
                 // "for" attribute, must find an input with matching id
                 $inputNodes = $xpath->query(".//*[@id=\"".$for."\"]");
                 foreach($inputNodes as $inputNode) {
@@ -398,7 +398,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
                     }
                 }
             }
-            if(strlen($id) > 0) {
+            if($id !== null && strlen($id) > 0) {
                 // "id" attribute, must find an input with matching aria-labelledby
                 // Note! aria-labelledby can be a space separated list
                 $inputNodes = $xpath->query(".//*[contains(concat(\" \",normalize-space(@aria-labelledby),\" \"),\" ".$id." \")]");
@@ -469,14 +469,14 @@ function getByLabelText($container, $pattern, $options = array())
 function queryAllByPlaceholderText($container, $pattern, $options = array())
 {
     $dom = getDocument($container);
-    $xpath = new DOMXPath($dom);
+    $xpath = getXPath($dom);
 
     // Find all input/textarea that have attribute placeholder
     $nodelist = $xpath->query(".//input[@placeholder]|.//textarea[@placeholder]", $container);
 
     $found = [];
     foreach($nodelist as $node) {
-        if($node instanceof \DOMElement) {
+        if(isDomElement($node)) {
             $placeholder = $node->getAttribute("placeholder");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $placeholder, $options);
             if($hasMatch) {
@@ -516,13 +516,13 @@ function getByPlaceholderText($container, $pattern, $options = array())
 function queryAllByDisplayValue($container, $pattern, $options = array())
 {
     $dom = getDocument($container);
-    $xpath = new DOMXPath($dom);
+    $xpath = getXPath($dom);
 
     // Find all input/textarea 
     $nodelist = $xpath->query(".//input[@value]|.//textarea", $container);
     $found = [];
     foreach($nodelist as $node) {
-        if($node instanceof \DOMElement) {
+        if(isDomElement($node)) {
             $displayValue = \pest\dom\getElementValue($node);
             $hasMatch = \pest\utils\hasTextMatch($pattern, $displayValue, $options);
             if($hasMatch) {
@@ -536,7 +536,7 @@ function queryAllByDisplayValue($container, $pattern, $options = array())
     // ie. the text content of option
     $nodelist = $xpath->query(".//select/option[@selected]/..", $container);
     foreach($nodelist as $node) {
-        if($node instanceof \DOMElement) {
+        if(isDomElement($node)) {
             $displayValue = \pest\dom\getSelectValue($node, ["displayValue" => true]);
             $hasMatch = \pest\utils\hasTextMatch($pattern, $displayValue, $options);
             if($hasMatch) {
