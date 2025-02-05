@@ -36,9 +36,10 @@ function render($compSrc, $namespace = '')
     $rendered_output = ob_get_clean();
     $_lastRenderOutput = $rendered_output;
 
-    $dom = \pest\dom\parse($rendered_output);
+    //$dom = \pest\dom\parse($rendered_output, false);
+    //return $dom->documentElement;
 
-    return $dom;
+    return \pest\dom\parse($rendered_output, true);
 }
 
 function debug()

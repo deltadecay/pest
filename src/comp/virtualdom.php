@@ -41,8 +41,10 @@ class VirtualDOM
 
         $this->transform($this->dom);
 
-        
-        $this->dom->formatOutput = false;
+        if($this->dom instanceof \DOMDocument) 
+        {
+            $this->dom->formatOutput = false;
+        }
         //$this->dom->preserveWhitespace = false;
 
         $dummy_root = $this->dom->documentElement;
@@ -54,19 +56,22 @@ class VirtualDOM
         //$str = substr($this->dom->saveHtml(), strlen("<vrdomcomproot>"), -strlen("</vrdomcomproot>")-1);
         //$str = $this->dom->saveHtml();
         $str = substr($this->dom->saveHtml(), strlen("<".$rootname.$idattrStr.">"), -strlen("</".$rootname.">")-1);
-        
+        //$str = $this->dom->saveHtml();
         echo $str.PHP_EOL;
     }
 
+    
     private function getDocument($node)
     {
+        /*
         $dom = null;
         if($node instanceof \DOMDocument) {
             $dom = $node;
         } else if($node instanceof \DOMNode) {
             $dom = $node->ownerDocument;
         }
-        return $dom;
+        return $dom;*/
+        return \pest\dom\getDocument($node);
     }
 
     private function registerChildren($children)
@@ -120,6 +125,7 @@ class VirtualDOM
             throw new \Exception("DOM tree too deep?");
         }
         $dom = $this->getDocument($node);
+        //$dom = \pest\dom\getDocument($node);
         $nodeList = iterator_to_array($node->childNodes);
         $i = 0;
         while($i < count($nodeList)) {
@@ -211,7 +217,8 @@ class VirtualDOM
 
                 array_splice($nodeList, $i, 1, $newNodes);
                 $i--; // Back so we visit the new node
-            } elseif($comp instanceof \DOMElement) {
+            //} elseif($comp instanceof \DOMElement) {
+            } elseif(\pest\dom\isDomElement($comp)) {
                 // Regular element, traverse down the tree
                 $this->transform($comp, $level + 1);
             }
@@ -223,7 +230,7 @@ class VirtualDOM
     private function parseToNode($src) 
     {
         //return \pest\dom\parse($src);
-        
+
         libxml_use_internal_errors(true);
         $temp_dom = new \DOMDocument();
         $loadOk = $temp_dom->loadHTML("<vrdomcomproot>".$src."</vrdomcomproot>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
@@ -237,5 +244,31 @@ class VirtualDOM
             return null;
         }
         return $temp_dom;
+
+/*
+        $loadOk  = false;
+        if(PHP_VERSION_ID < 80400) 
+        {
+            libxml_use_internal_errors(true);
+            $dom = new \DOMDocument();
+            $loadOk = $dom->loadHTML("<vrdomcomproot>$src</vrdomcomproot>", LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+            //foreach(libxml_get_errors() as $error) {
+            //    echo "\t".$error->message.PHP_EOL;
+            //}
+            libxml_clear_errors();
+        }
+        else
+        {
+            $dom = \Dom\HTMLDocument::createFromString("<vrdomcomproot>$src</vrdomcomproot>", LIBXML_NOERROR | LIBXML_HTML_NOIMPLIED | \Dom\HTML_NO_DEFAULT_NS );
+            $loadOk = $dom instanceof \Dom\HTMLDocument;
+        }
+        if (!$loadOk)
+        {
+            echo "Failed to load html".PHP_EOL;
+            return null;
+        }
+    
+        return $dom;
+        */
     }
 }

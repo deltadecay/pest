@@ -84,6 +84,9 @@ test("Avatar component renders", function() {
     $comp = render("<AvatarApp />", __NAMESPACE__);
     debug();
 
+    //var_dump($comp);
+    // Cannot yet use the new Dom\HTMLDocument as the root has a NULL textContent
+    
     expect($comp)->toHaveTextContent("/Alien robot in space/");
 
     $heading = \pest\dom\queryByRole($comp, "heading", ["name" => "/Tin Rust-Bot/"]);
