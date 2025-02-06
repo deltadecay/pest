@@ -71,7 +71,7 @@ class Expectation
         $epsilon = pow(10, -$numDigits) / 2;
         if(!$this->holds(abs($this->value - $expected) < $epsilon))
         {
-            throw new TestFailException($this->value, $expected, $this->negate);
+            throw new TestFailException($this->value, "≈".$expected, $this->negate);
         }
     }
 
@@ -79,7 +79,7 @@ class Expectation
     {
         if(!$this->holds($this->value > $expected))
         {
-            throw new TestFailException($this->value, $expected, $this->negate);
+            throw new TestFailException($this->value, ">".$expected, $this->negate);
         }
     }
     
@@ -87,14 +87,14 @@ class Expectation
     {
         if(!$this->holds($this->value >= $expected))
         {
-            throw new TestFailException($this->value, $expected, $this->negate);
+            throw new TestFailException($this->value, ">=".$expected, $this->negate);
         }
     }
     public function toBeLessThan($expected)
     {
         if(!$this->holds($this->value < $expected))
         {
-            throw new TestFailException($this->value, $expected, $this->negate);
+            throw new TestFailException($this->value, "<".$expected, $this->negate);
         }
     }
     
@@ -102,7 +102,7 @@ class Expectation
     {
         if(!$this->holds($this->value <= $expected))
         {
-            throw new TestFailException($this->value, $expected, $this->negate);
+            throw new TestFailException($this->value, "<=".$expected, $this->negate);
         }
     }
 
