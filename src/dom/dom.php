@@ -72,20 +72,35 @@ function debug($dom)
     $str = '';
     if($dom instanceof \DOMDocument)
     {
-        $dom->formatOutput = true;
-        // Remove the dummy root that we added in parse
-        $str = substr($dom->saveHtml(), strlen("<dummypestroot id=\"$id\">"), -(strlen("</dummypestroot>")+1));
+        $dom->formatOutput = false;
     }
-    if (PHP_VERSION_ID >= 80400) 
+    /*if (PHP_VERSION_ID >= 80400) 
     {
         if($dom instanceof \Dom\HTMLDocument)
         {
-            //$dom->formatOutput = true;
+
             // Remove the dummy root that we added in parse
-            $str = substr($dom->saveHtml(), strlen("<dummypestroot id=\"$id\">"), -(strlen("</dummypestroot>")+1));
+            //$str = substr($out, strlen("<dummypestroot id=\"$id\">"), -(strlen("</dummypestroot>")+1));
             //$str = $dom->saveHtml();
         }
+    }*/
+    $out = $dom->saveHtml();
+    //$dom->formatOutput = true;
+    $dummy_start = "<dummypestroot id=\"$id\">";
+    $idx_start = stripos($out, $dummy_start);
+    
+    if($idx_start !== false)
+    {
+        $out = substr($out, $idx_start + strlen($dummy_start ));
     }
+
+    $dummy_end = "</dummypestroot>";
+    $idx_end = stripos($out, $dummy_end);
+    if($idx_end !== false)
+    {
+        $out = substr($out, 0, $idx_end);
+    }
+    $str = $out;
     //$str = $dom->saveHtml();
     echo $str.PHP_EOL;
 }
