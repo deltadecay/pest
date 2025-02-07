@@ -37,6 +37,8 @@ test("equality", function() {
 test("add two ints", function() {
     expect(5 + 6)->toBeEqual(11);
     expect(5 + 6)->toBeGreaterThanOrEqual(10);
+    expect(5 + 6)->toBeLessThan(15);
+    expect(5 + 6)->toBeLessThanOrEqual(11);
 });
 
 test("null", function() {
@@ -147,6 +149,9 @@ test("arrays", function() {
     expect([1,2,4])->toContain(2);
     expect([1,2,4])->toHaveCount(3);
     expect([1,2,4])->not()->toHaveCount(1);
+
+    expect(2)->toBeInArray([1,2,4]);
+    expect(3)->not()->toBeInArray([1,2,4]);
 });
 
 
