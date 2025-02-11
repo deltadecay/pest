@@ -151,14 +151,36 @@ class Expectation
         }
     }
 
-    public function toMatch($pattern)
+    public function toMatch($pattern, $options = [])
     {
-        // Turn off normalizer, we do not want to collapse and trim whitespace
-        $options = [
+        if(!is_array($options))
+        {
+            $options = [];
+        }
+
+        $useNoNormalizer = false;
+        // By default we use the no-normalizer if user not provided other. 
+        // Don't want to collapse and trim whitespace by default.
+        if(!array_key_exists("normalizer", $options))
+        {
+            $options["normalizer"] = \pest\utils\noNormalizer();
+            $useNoNormalizer = true;
+        }
+        if(array_key_exists("trimWhitespace", $options) || 
+            array_key_exists("collapseWhitespace", $options))
+        {
+            // If these options are set then do not use the implicitly set no-normalizer
+            if($useNoNormalizer) 
+            {
+                unset($options["normalizer"]);
+            }
+        }
+
+        /*$options = [
             //"trimWhitespace" => false,
             //"collapseWhitespace" => false,
             "normalizer" => \pest\utils\noNormalizer(),
-        ];
+        ];*/
         $hasMatch = \pest\utils\hasTextMatch($pattern, $this->value, $options);
 
         if(!$this->holds($hasMatch))

@@ -92,6 +92,25 @@ test("match with empty string", function() {
     expect($a)->toMatch("/^$/");   
 });
 
+test("match with options", function() {
+    $text = " This   is  a sentence.  ";
+    expect($text)->not()->toMatch("This is a sentence.");   
+    
+    $opts = [
+        // Turn off the default no-normalizer in toMatch
+        //"normalizer" => false,
+        // Setting these will imply to not use the no-normalizer
+        "trimWhitespace" => true,
+        "collapseWhitespace" => true,
+    ];
+    expect($text)->toMatch("This is a sentence.", $opts);  
+
+    expect("Some text here to partially match.")->not()->toMatch("partially match");
+    // The exact option only applies when match pattern is not a regexp, but a regular string.
+    expect("Some text here to partially match.")->toMatch("partially match", ["exact" => false]);
+});
+
+
 test("throws", function() {
 
     function afunc() {
