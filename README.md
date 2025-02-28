@@ -2,11 +2,14 @@
 
 Pest is a simple testing framework heavily inspired by jest, but does not attempt to cover all functionality.
 
-This has been tested with php 5.6 and 8.2.
+Tested with php 5.6, 8.2 and 8.4.
 
-Running the tests in **test.php**
+## Running the tests
+
+Check the test files in **tests** to see how it is used.
+
 ```shell
-$ php test.php
+$ php tests/pest.test.php
 ```
 
 outputs status for each test whether it PASS or FAIL.
