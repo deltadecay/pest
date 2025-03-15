@@ -235,7 +235,31 @@ class Expectation
         if(is_array($this->value)) {
             if(!$this->holds(in_array($item, $this->value, true)))
             {
-                throw new TestFailException($this->value, $item, $this->negate);
+                throw new TestFailException($this->value, "item $item", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "array", false);
+        }
+    }
+
+    public function toHaveKey($key)
+    {
+        if(is_array($this->value)) {
+            if(!$this->holds(array_key_exists($key, $this->value)))
+            {
+                throw new TestFailException($this->value, "key $key", $this->negate);
+            }
+        } else {
+            throw new TestFailException($this->value, "array", false);
+        }
+    }
+
+    public function toHaveProperty($prop)
+    {
+        if(is_object($this->value) || is_string($this->value)) {
+            if(!$this->holds(property_exists($this->value, $prop)))
+            {
+                throw new TestFailException($this->value, "property $prop", $this->negate);
             }
         } else {
             throw new TestFailException($this->value, "array", false);

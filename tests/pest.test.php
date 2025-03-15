@@ -173,6 +173,47 @@ test("arrays", function() {
     expect(3)->not()->toBeInArray([1,2,4]);
 });
 
+test("array has key", function() {
+    $a = ["akey" => 3, "data" => "hello", "8" => 16, 1337 => -1, "nullvalue" => null];
+
+    expect($a)->toHaveKey("akey");
+    expect($a)->toHaveKey("data");
+    expect($a)->toHaveKey("8");
+    // Keys that can be parsed to ints are integer keys
+    expect($a)->toHaveKey(8);
+    expect($a)->toHaveKey(1337);
+    expect($a)->toHaveKey("1337");
+
+    expect($a)->not()->toHaveKey("xdata");
+
+    // isset returns false if a value is null
+    expect($a["nullvalue"])->not()->toBeSet();
+    expect($a["nullvalue"])->toBeUnset();
+
+    // but with toHaveKey we can test existence even if value null
+    expect($a)->toHaveKey("nullvalue");    
+});
+
+test("object has property", function() {
+    class C {
+        public int $data;
+        private bool $hasData;
+    };
+    $c = new C();
+
+    expect($c)->toHaveProperty('data');
+    expect($c)->toHaveProperty('hasData');
+    expect(__NAMESPACE__."\\C")->toHaveProperty('data');
+    expect($c)->not()->toHaveProperty('xy');
+
+    $b = new \stdClass;
+    $b->prop1 = 5;
+    $b->prop2 = "abc";
+    expect($b)->toHaveProperty("prop1");
+    expect($b)->toHaveProperty("prop2");
+    expect($b)->not()->toHaveProperty("propx");
+});
+
 
 test("mock function", function() {
 
