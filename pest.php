@@ -54,7 +54,7 @@ function test($name, callable $callable)
     $tabs = str_repeat("\t", max(0, $ctx->depth));
 
     if(is_callable($ctx->beforeEachTestFunc)) {
-        ($ctx->beforeEachTestFunc)($name);
+        call_user_func($ctx->beforeEachTestFunc, $name);
     }
 
     $ex = null;
@@ -62,7 +62,7 @@ function test($name, callable $callable)
         pushTestContext($name);
         ob_start();
         if(is_callable($callable)) {
-            $callable();
+            call_user_func($callable);
         } else {
             throw new \Exception("test(): callable is not a function");
         }
@@ -93,7 +93,7 @@ function test($name, callable $callable)
     echo $nestedOutput;
 
     if(is_callable($ctx->afterEachTestFunc)) {
-        ($ctx->afterEachTestFunc)($name);
+        call_user_func($ctx->afterEachTestFunc, $name);
     }
 }
 

@@ -4,11 +4,12 @@ namespace PestTests;
 
 require_once(__DIR__."/../pest.php");
 
-
 use \Exception;
 
 use function \pest\test;
 use function \pest\expect;
+use function pest\beforeEach;
+use function pest\afterEach;
 use function \pest\mockfn;
 
 test("equality", function() {
@@ -52,6 +53,7 @@ test("null", function() {
   
 test("zero", function() {
     $z = 0;
+    expect($z)->toBeEqual(0);
     expect($z)->not()->toBeNull();
     expect($z)->toBeSet();
     expect($z)->not()->toBeUnset();
@@ -196,8 +198,8 @@ test("array has key", function() {
 
 test("object has property", function() {
     class C {
-        public int $data;
-        private bool $hasData;
+        public $data;
+        private $hasData;
     };
     $c = new C();
 
@@ -283,6 +285,13 @@ test("mock function", function() {
 
 
 test("nested tests", function() {
+
+    beforeEach(function($name) { 
+        //echo "Before $name\n";
+    });
+    afterEach(function($name) { 
+        //echo "After $name\n";
+    });
 
     test("test 1 nested", function() {
         expect(1)->toBe(1);
