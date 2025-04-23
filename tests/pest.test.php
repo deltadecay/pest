@@ -288,7 +288,9 @@ test("nested tests", function() {
         expect(1)->toBe(1);
     });
     test("test 2 nested", function() {
-        expect(2)->toBe(2);
+        test("test 2.1 nested", function() {
+            expect(2)->toBe(2);
+        });
     });
 });
 

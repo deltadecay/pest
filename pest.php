@@ -69,7 +69,7 @@ function test($name, callable $callable)
 
         $nestedCtx = getCurrentTestContext();
         if($nestedCtx->numTestsFailed > 0) {
-            throw new \Exception($nestedCtx->numTestsSucceeded." succeeded, ".$nestedCtx->numTestsFailed." failed");
+            throw new \Exception($nestedCtx->numTestsFailed." nested test(s) failed");
         }
 
     } catch (\Exception $e) {
