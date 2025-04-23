@@ -4,16 +4,68 @@ namespace pest;
 
 class TestContext
 {
-    public $name;
-    public $depth = 0;
-    public $beforeEachTestFunc = null;
-    public $afterEachTestFunc = null;
-    public $numTestsFailed = 0;
-    public $numTestsSucceeded = 0;
+    protected $name;
+    protected $depth = 0;
+    protected $beforeEachTestFunc = null;
+    protected $afterEachTestFunc = null;
+    protected $numTestsFailed = 0;
+
+
     public function __construct($name, $depth = 0)
     {
         $this->name = $name;
         $this->depth = $depth;
+    }
+
+    public function setBeforeEachCallback(callable $callback)
+    {
+        $this->beforeEachTestFunc = $callback;
+    }
+
+    public function setAfterEachCallback(callable $callback)
+    {
+        $this->afterEachTestFunc = $callback;
+    }
+
+
+    public function getNumTestsFailed() 
+    {
+        return $this->numTestsFailed;
+    }
+
+
+    public function increaseTestsFailed()
+    {
+        $this->numTestsFailed++;
+    }
+
+    public function beforeEachTest(...$params)
+    {
+        if(is_callable($this->beforeEachTestFunc)) {
+            call_user_func_array($this->beforeEachTestFunc, $params);
+        }
+    }
+
+    public function afterEachTest(...$params)
+    {
+        if(is_callable($this->afterEachTestFunc)) {
+            call_user_func_array($this->afterEachTestFunc, $params);
+        }
+    }
+
+    public function getTestStatusReport($name, $nestedOutput, $testException)
+    {
+        $tabs = str_repeat("\t", max(0, $this->depth));
+        $statusCode = "\033[92m o PASS \033[0m";
+        $errMsg = "";
+        if($testException instanceof \Exception) {
+            $statusCode = "\033[91m x FAIL \033[0m";
+            $errMsg = PHP_EOL.$tabs."\t".$testException->getMessage();
+        } 
+        $str = $tabs.$statusCode;
+        $str.= $name.$errMsg.PHP_EOL;
+        $str.= $nestedOutput;
+        return $str;
     }
 }
 

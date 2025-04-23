@@ -23,7 +23,7 @@ function beforeEach(callable $callable)
 {
     $ctx = getCurrentTestContext();
     if(is_callable($callable)) {
-        $ctx->beforeEachTestFunc = $callable;
+        $ctx->setBeforeEachCallback($callable);
     } else {
         throw new \Exception("beforeEach(): callable is not a function");
     }
@@ -33,14 +33,14 @@ function afterEach(callable $callable)
 {
     $ctx = getCurrentTestContext();
     if(is_callable($callable)) {
-        $ctx->afterEachTestFunc = $callable;
+        $ctx->setAfterEachCallback($callable);
     } else {
         throw new \Exception("afterEach(): callable is not a function");
     }
 }
 
 /**
- * Run a named test 
+ * Run a named test. It prints the results of the test PASS/FAIL 
  * @param string The name of the test
  * @param callable The implementation of the test as a callable
  * @example test("add two numbers", function() {
@@ -51,13 +51,9 @@ function afterEach(callable $callable)
 function test($name, callable $callable) 
 {
     $ctx = getCurrentTestContext();
-    $tabs = str_repeat("\t", max(0, $ctx->depth));
+    $ctx->beforeEachTest($name);
 
-    if(is_callable($ctx->beforeEachTestFunc)) {
-        call_user_func($ctx->beforeEachTestFunc, $name);
-    }
-
-    $ex = null;
+    $testEx = null;
     try {
         pushTestContext($name);
         ob_start();
@@ -68,33 +64,22 @@ function test($name, callable $callable)
         }
 
         $nestedCtx = getCurrentTestContext();
-        if($nestedCtx->numTestsFailed > 0) {
-            throw new \Exception($nestedCtx->numTestsFailed." nested test(s) failed");
+        if($nestedCtx->getNumTestsFailed() > 0) {
+            throw new \Exception($nestedCtx->getNumTestsFailed()." nested test(s) failed");
         }
 
     } catch (\Exception $e) {
-        $ex = $e;
+        $testEx = $e;
+        $ctx->increaseTestsFailed();
     } finally {
         $nestedOutput = ob_get_clean();
         popTestContext();
     }
 
-    $statusCode = "\033[92m o PASS \033[0m";
-    $errMsg = "";
-    if($ex instanceof \Exception) {
-        $ctx->numTestsFailed++;
-        $statusCode = "\033[91m x FAIL \033[0m";
-        $errMsg = PHP_EOL.$tabs."\t".$ex->getMessage();
-    } else {
-        $ctx->numTestsSucceeded++;
-    }
-    echo $tabs.$statusCode;
-    echo $name.$errMsg.PHP_EOL;
-    echo $nestedOutput;
+    $report = $ctx->getTestStatusReport($name, $nestedOutput, $testEx);
+    echo $report;
 
-    if(is_callable($ctx->afterEachTestFunc)) {
-        call_user_func($ctx->afterEachTestFunc, $name);
-    }
+    $ctx->afterEachTest($name);
 }
 
 /**
