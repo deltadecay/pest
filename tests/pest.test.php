@@ -280,3 +280,15 @@ test("mock function", function() {
     expect($mockAdd->getCalls()[0])->toBe([]);
     expect($mockAdd)->toHaveBeenNthCalledWith(0);
 });
+
+
+test("nested tests", function() {
+
+    test("test 1 nested", function() {
+        expect(1)->toBe(1);
+    });
+    test("test 2 nested", function() {
+        expect(2)->toBe(2);
+    });
+});
+
