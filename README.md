@@ -23,6 +23,44 @@ When run, this outputs:
  o PASS null
 ```
 
+## Nested tests
+
+Organize the tests by grouping and nesting tests and initializations:
+
+```php
+
+beforeEach(function($name) { 
+    // Init tests: nested tests
+});
+
+test("nested tests", function() {
+
+    beforeEach(function($name) { 
+        echo "Before $name\n";
+        // Init something for each test:
+        // test 1 feature
+        // test 2 feature
+    });
+
+    afterEach(function($name) { 
+        echo "After $name\n";
+        // Tear down test init for each test
+    });
+
+    test("test 1 features", function() {
+        expect(1)->toBe(1);
+    });
+
+    test("test 2 features", function() {
+        
+        test("test 2.1 methods", function() {
+            expect(2)->toBe(2);
+        });
+    });
+});
+```
+
+
 
 ## Running the tests
 
