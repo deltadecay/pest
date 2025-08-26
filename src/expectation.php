@@ -59,10 +59,10 @@ class Expectation
         if(is_array($items)) {
             if(!$this->holds(in_array($this->value, $items, true)))
             {
-                throw new TestFailException($this->value, $items, $this->negate);
+                throw new TestFailException($this->value, "one of ".$items, $this->negate);
             }
         } else {
-            throw new TestFailException($items, "array", false);
+            throw new TestFailException($items, "an array", false);
         }
     }
 
@@ -235,10 +235,10 @@ class Expectation
         if(is_array($this->value)) {
             if(!$this->holds(in_array($item, $this->value, true)))
             {
-                throw new TestFailException($this->value, "item $item", $this->negate);
+                throw new TestFailException($this->value, "array to contain item $item", $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "array", false);
+            throw new TestFailException($this->value, "an array", false);
         }
     }
 
@@ -250,7 +250,7 @@ class Expectation
                 throw new TestFailException($this->value, "key $key", $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "array", false);
+            throw new TestFailException($this->value, "an array", false);
         }
     }
 
@@ -262,7 +262,7 @@ class Expectation
                 throw new TestFailException($this->value, "property $prop", $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "array", false);
+            throw new TestFailException($this->value, "an array", false);
         }
     }
 
@@ -275,7 +275,7 @@ class Expectation
                 throw new TestFailException("$cnt items", "$number items", $this->negate);
             }
         } else {
-            throw new TestFailException($this->value, "array", false);
+            throw new TestFailException($this->value, "an array or countable", false);
         }
     }
 
