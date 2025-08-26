@@ -59,7 +59,7 @@ class Expectation
         if(is_array($items)) {
             if(!$this->holds(in_array($this->value, $items, true)))
             {
-                throw new TestFailException($this->value, "one of ".$items, $this->negate);
+                throw new TestFailException($this->value, "one in ".var_export($items, true), $this->negate);
             }
         } else {
             throw new TestFailException($items, "an array", false);
@@ -235,7 +235,7 @@ class Expectation
         if(is_array($this->value)) {
             if(!$this->holds(in_array($item, $this->value, true)))
             {
-                throw new TestFailException($this->value, "array to contain item $item", $this->negate);
+                throw new TestFailException($this->value, "array to contain item ".var_export($item, true), $this->negate);
             }
         } else {
             throw new TestFailException($this->value, "an array", false);
