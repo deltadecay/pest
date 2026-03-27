@@ -58,7 +58,7 @@ class DOMExpectation extends \pest\Expectation
                 $nodeClassAttr = $this->value->getAttribute("class");
                 $classes = explode(" ", $nodeClassAttr); 
             }
-            if(!$this->holds(in_array($className, $classes)))
+            if(!$this->holds(\in_array($className, $classes)))
             {
                 throw new TestFailException(implode(" ", $classes), "class $className", $this->negate);
             }

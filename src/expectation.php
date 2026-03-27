@@ -56,8 +56,8 @@ class Expectation
 
     public function toBeInArray($items) 
     {
-        if(is_array($items)) {
-            if(!$this->holds(in_array($this->value, $items, true)))
+        if(\is_array($items)) {
+            if(!$this->holds(\in_array($this->value, $items, true)))
             {
                 throw new TestFailException($this->value, "one in ".var_export($items, true), $this->negate);
             }
@@ -147,13 +147,13 @@ class Expectation
     {
         if(!$this->holds($this->value instanceof $class))
         {
-            throw new TestFailException(get_class($this->value), $class, $this->negate);
+            throw new TestFailException(\get_class($this->value), $class, $this->negate);
         }
     }
 
     public function toMatch($pattern, $options = [])
     {
-        if(!is_array($options))
+        if(!\is_array($options))
         {
             $options = [];
         }
@@ -161,13 +161,13 @@ class Expectation
         $useNoNormalizer = false;
         // By default we use the no-normalizer if user not provided other. 
         // Don't want to collapse and trim whitespace by default.
-        if(!array_key_exists("normalizer", $options))
+        if(!\array_key_exists("normalizer", $options))
         {
             $options["normalizer"] = \pest\utils\noNormalizer();
             $useNoNormalizer = true;
         }
-        if(array_key_exists("trimWhitespace", $options) || 
-            array_key_exists("collapseWhitespace", $options))
+        if(\array_key_exists("trimWhitespace", $options) || 
+            \array_key_exists("collapseWhitespace", $options))
         {
             // If these options are set then do not use the implicitly set no-normalizer
             if($useNoNormalizer) 
@@ -202,16 +202,16 @@ class Expectation
         try { 
             $fun();
         } catch (\Exception $e) {
-            $thrownExceptionMsg = get_class($e)."(".$e->getMessage().")";
+            $thrownExceptionMsg = \get_class($e)."(".$e->getMessage().")";
             if (isset($error)) {
-                if(is_string($error)) {
+                if(\is_string($error)) {
                     $expectedMsg = $error;
                     $hasMatch = \pest\utils\hasTextMatch($error, $e->getMessage());
                 } else {
                     if($error instanceof \Exception) {
-                        $expectedMsg = get_class($error)."(".$error->getMessage().")";
+                        $expectedMsg = \get_class($error)."(".$error->getMessage().")";
                         $hasMatch = $e->getMessage() == $error->getMessage() &&
-                            get_class($e) == get_class($error);
+                            \get_class($e) == \get_class($error);
                     } else {
                         $expectedMsg = $error;
                     }
@@ -232,8 +232,8 @@ class Expectation
 
     public function toContain($item) 
     {
-        if(is_array($this->value)) {
-            if(!$this->holds(in_array($item, $this->value, true)))
+        if(\is_array($this->value)) {
+            if(!$this->holds(\in_array($item, $this->value, true)))
             {
                 throw new TestFailException($this->value, "array to contain item ".var_export($item, true), $this->negate);
             }
@@ -244,8 +244,8 @@ class Expectation
 
     public function toHaveKey($key)
     {
-        if(is_array($this->value)) {
-            if(!$this->holds(array_key_exists($key, $this->value)))
+        if(\is_array($this->value)) {
+            if(!$this->holds(\array_key_exists($key, $this->value)))
             {
                 throw new TestFailException($this->value, "key $key", $this->negate);
             }
@@ -256,7 +256,7 @@ class Expectation
 
     public function toHaveProperty($prop)
     {
-        if(is_object($this->value) || is_string($this->value)) {
+        if(\is_object($this->value) || \is_string($this->value)) {
             if(!$this->holds(property_exists($this->value, $prop)))
             {
                 throw new TestFailException($this->value, "property $prop", $this->negate);
@@ -268,8 +268,8 @@ class Expectation
 
     public function toHaveCount($number)
     {
-        if (is_array($this->value) || $this->value instanceof \Countable) {
-            $cnt = count($this->value);
+        if(\is_array($this->value) || $this->value instanceof \Countable) {
+            $cnt = \count($this->value);
             if(!$this->holds($cnt === $number))
             {
                 throw new TestFailException("$cnt items", "$number items", $this->negate);
@@ -286,7 +286,7 @@ class Expectation
     {
         if($this->value instanceof MockFn) {
 
-            if(!$this->holds(count($this->value->getCalls()) > 0))
+            if(!$this->holds(\count($this->value->getCalls()) > 0))
             {
                 throw new TestFailException("0 calls", ">0 calls", $this->negate);
             }
@@ -298,7 +298,7 @@ class Expectation
     public function toHaveBeenCalledTimes($numCalls) 
     {
         if($this->value instanceof MockFn) {
-            $actualCalls = count($this->value->getCalls());
+            $actualCalls = \count($this->value->getCalls());
             if(!$this->holds($actualCalls == $numCalls))
             {
                 throw new TestFailException("$actualCalls calls", "$numCalls calls", $this->negate);
@@ -327,7 +327,7 @@ class Expectation
         if($this->value instanceof MockFn) {
 
             $result_types = array_column($this->value->getResults(), "type");
-            if(!$this->holds(in_array("return", $result_types)))
+            if(!$this->holds(\in_array("return", $result_types)))
             {
                 throw new TestFailException("0 returns", ">0 returns", $this->negate);
             }
@@ -341,7 +341,7 @@ class Expectation
         if($this->value instanceof MockFn) {
 
             $result_types = array_column($this->value->getResults(), "type");
-            $num_returns = count(array_filter($result_types, function($type) { return $type == "return"; }));
+            $num_returns = \count(array_filter($result_types, function($type) { return $type == "return"; }));
             if(!$this->holds($num_returns == $numTimesReturns))
             {
                 throw new TestFailException("$num_returns returns", "$numTimesReturns returns", $this->negate);
@@ -366,7 +366,7 @@ class Expectation
                 if ($nthType == "return") {
                     $got .= $nthValue;
                 } else if ($nthType == "throw" && ($nthValue instanceof \Exception)) {
-                    $got .= get_class($nthValue)."(".$nthValue->getMessage().")";
+                    $got .= \get_class($nthValue)."(".$nthValue->getMessage().")";
                 }
                 throw new TestFailException($got, $value, $this->negate);
             }

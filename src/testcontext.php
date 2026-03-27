@@ -42,14 +42,14 @@ class TestContext
     public function beforeEachTest(...$params)
     {
         if(is_callable($this->beforeEachTestFunc)) {
-            call_user_func_array($this->beforeEachTestFunc, $params);
+            \call_user_func_array($this->beforeEachTestFunc, $params);
         }
     }
 
     public function afterEachTest(...$params)
     {
         if(is_callable($this->afterEachTestFunc)) {
-            call_user_func_array($this->afterEachTestFunc, $params);
+            \call_user_func_array($this->afterEachTestFunc, $params);
         }
     }
 
@@ -76,10 +76,10 @@ $_testContextStack = [];
 function getCurrentTestContext()
 {
     global $_testContextStack;
-    if(!is_array($_testContextStack)) {
+    if(!\is_array($_testContextStack)) {
         $_testContextStack = [];
     }
-    $n = count($_testContextStack);
+    $n = \count($_testContextStack);
     if($n == 0)
     {
         // If no contexts, create the top most global context
@@ -93,7 +93,7 @@ function getCurrentTestContext()
 function pushTestContext($name)
 {
     global $_testContextStack;
-    $n = count($_testContextStack);
+    $n = \count($_testContextStack);
     array_push($_testContextStack, new TestContext($name, $n));
 }
 

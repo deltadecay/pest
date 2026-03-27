@@ -53,9 +53,9 @@ class VirtualDOM
         if($dummy_root->hasAttribute("id")) {
             $idattrStr = " id=\"".$dummy_root->getAttribute("id")."\"";
         }
-        //$str = substr($this->dom->saveHtml(), strlen("<vrdomcomproot>"), -strlen("</vrdomcomproot>")-1);
+        //$str = substr($this->dom->saveHtml(), \strlen("<vrdomcomproot>"), -\strlen("</vrdomcomproot>")-1);
         //$str = $this->dom->saveHtml();
-        $str = substr($this->dom->saveHtml(), strlen("<".$rootname.$idattrStr.">"), -strlen("</".$rootname.">")-1);
+        $str = substr($this->dom->saveHtml(), \strlen("<".$rootname.$idattrStr.">"), -\strlen("</".$rootname.">")-1);
         //$str = $this->dom->saveHtml();
         echo $str.PHP_EOL;
     }
@@ -76,7 +76,7 @@ class VirtualDOM
 
     private function registerChildren($children)
     {
-        $id = count($this->childrenRegistry);
+        $id = \count($this->childrenRegistry);
         $c = new Children($id, $children, $this);
         $this->childrenRegistry[$id] = $c;
         return $c;
@@ -84,7 +84,7 @@ class VirtualDOM
 
     public function registerRef($obj)
     {
-        $id = count($this->refRegistry);
+        $id = \count($this->refRegistry);
         $ref = new Ref($id, $obj);
         $this->refRegistry[$id] = $ref;
         return $ref;
@@ -128,7 +128,7 @@ class VirtualDOM
         //$dom = \pest\dom\getDocument($node);
         $nodeList = iterator_to_array($node->childNodes);
         $i = 0;
-        while($i < count($nodeList)) {
+        while($i < \count($nodeList)) {
 
             $comp = $nodeList[$i];
 
@@ -173,14 +173,14 @@ class VirtualDOM
 
                 $props = $this->getProps($comp);
 
-                if(count($children) > 0) {
+                if(\count($children) > 0) {
                     $props['children'] = $this->registerChildren($children);
                 }
 
                 setVirtualDOM($this);
                 ob_start();
                 //$ret_output = $name($props);
-                $ret_output = call_user_func_array($this->namespace."\\".$name, array($props));
+                $ret_output = \call_user_func_array($this->namespace."\\".$name, [$props]);
                 $echoed_output = ob_get_clean();
                 setVirtualDOM(null);
                 

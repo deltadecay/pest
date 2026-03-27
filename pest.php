@@ -58,7 +58,7 @@ function test($name, callable $callable)
         pushTestContext($name);
         ob_start();
         if(is_callable($callable)) {
-            call_user_func($callable);
+            \call_user_func($callable);
         } else {
             throw new \Exception("test(): callable is not a function");
         }

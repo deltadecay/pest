@@ -23,7 +23,7 @@ function expect($value)
 
 
 // Returns a list of DOMNodes matching role
-function queryAllByRole($container, $role, $options = array())
+function queryAllByRole($container, $role, $options = [])
 {
     $dom = getDocument($container);
     $xpath = getXPath($dom);
@@ -32,17 +32,17 @@ function queryAllByRole($container, $role, $options = array())
     // Find elements with aria role
     $nodelist = $xpath->query(".//*[@role=\"".$role."\"]", $container);
     foreach ($nodelist as $node) {
-        if(!in_array($node, $found, true)) {
+        if(!\in_array($node, $found, true)) {
             $found[] = $node;
         }
     }
 
     // Find elements with implicit roles
     $elementsToFind = \pest\dom\getElementsForRole($role);
-    if(is_array($elementsToFind)) {
+    if(\is_array($elementsToFind)) {
         foreach($elementsToFind as $elem) {
             $name = $elem['name'];
-            if(isset($elem['attributes']) && count($elem['attributes']) > 0) {
+            if(isset($elem['attributes']) && \count($elem['attributes']) > 0) {
                 // Search by name and attribute
                 foreach($elem['attributes'] as $attr) {
                     $attrName = $attr['name'];
@@ -50,7 +50,7 @@ function queryAllByRole($container, $role, $options = array())
 
                     $nodelist = $xpath->query(".//".$name."[@".$attrName."=\"".$attrValue."\"]", $container);
                     foreach ($nodelist as $node) {
-                        if(!in_array($node, $found, true)) {
+                        if(!\in_array($node, $found, true)) {
                             $found[] = $node;
                         }
                     }
@@ -60,7 +60,7 @@ function queryAllByRole($container, $role, $options = array())
                 // Just search by name
                 $nodelist = $xpath->query(".//".$name, $container);
                 foreach ($nodelist as $node) {
-                    if(!in_array($node, $found, true)) {
+                    if(!\in_array($node, $found, true)) {
                         $found[] = $node;
                     }
                 }
@@ -69,7 +69,7 @@ function queryAllByRole($container, $role, $options = array())
     }
 
     // If options name set then use it to filter with matching text content
-    if(isset($options['name']) && strlen($options['name'])>0)
+    if(isset($options['name']) && \strlen($options['name'])>0)
     {
         $matches = [];
         $pattern = $options['name'];
@@ -89,21 +89,21 @@ function queryAllByRole($container, $role, $options = array())
 
 
 // Returns matching role if found, null if not found, throws if many found
-function queryByRole($container, $role, $options = array())
+function queryByRole($container, $role, $options = [])
 {
     $found = queryAllByRole($container, $role, $options);
     return expectAtMostOne($found, "role", $role);
 }
 
 // Get atleast one matching role, throws if nothing found
-function getAllByRole($container, $role, $options = array())
+function getAllByRole($container, $role, $options = [])
 {
     $found = queryAllByRole($container, $role, $options);
     return expectAtleastOne($found, "role", $role);
 }
 
 // Get one matching role, throws if nothing found, throws if many found
-function getByRole($container, $role, $options = array())
+function getByRole($container, $role, $options = [])
 {
     $found = queryAllByRole($container, $role, $options);
     return expectOnlyOne($found, "role", $role);
@@ -112,7 +112,7 @@ function getByRole($container, $role, $options = array())
 
 
 // Returns a list of DOMNodes matching text
-function queryAllByText($container, $pattern, $options = array())
+function queryAllByText($container, $pattern, $options = [])
 {
     $ignore = isset($options['ignore']) ? trim($options['ignore']) : "script, style";
     // use selector to constrain the match
@@ -122,13 +122,13 @@ function queryAllByText($container, $pattern, $options = array())
     $xpath = getXPath($dom);
 
     $ignoredNodes = [];
-    if (strlen($ignore) > 0) {
+    if (\strlen($ignore) > 0) {
         $ignoreXPath = \pest\dom\cssSelectorToXPath($ignore);
         $ignoredNodes = iterator_to_array($xpath->query($ignoreXPath, $container));
     }
 
     $selectorNodes = [];
-    if (strlen($selector) > 0) {
+    if (\strlen($selector) > 0) {
         $selectorXPath = \pest\dom\cssSelectorToXPath($selector);
         $selectorNodes = iterator_to_array($xpath->query($selectorXPath, $container));
     }
@@ -150,9 +150,9 @@ function queryAllByText($container, $pattern, $options = array())
             // Thus we can be sure that contents of the node can be considered as text
             $nodeText = $parentToText->textContent;
             $hasMatch = \pest\utils\hasTextMatch($pattern, $nodeText, $options);
-            if($hasMatch && !in_array($parentToText, $ignoredNodes, true) && 
-                ($selector == "*" || in_array($parentToText, $selectorNodes))) {
-                if(!in_array($parentToText, $found, true)) {
+            if($hasMatch && !\in_array($parentToText, $ignoredNodes, true) && 
+                ($selector == "*" || \in_array($parentToText, $selectorNodes))) {
+                if(!\in_array($parentToText, $found, true)) {
                     $found[] = $parentToText;
                 }
             }
@@ -165,7 +165,7 @@ function queryAllByText($container, $pattern, $options = array())
         $buttonText = $inputNode->getAttribute("value");
         $hasMatch = \pest\utils\hasTextMatch($pattern, $buttonText, $options);
         if($hasMatch) {
-            if(!in_array($inputNode, $found, true)) {
+            if(!\in_array($inputNode, $found, true)) {
                 $found[] = $inputNode;
             }
         }
@@ -176,21 +176,21 @@ function queryAllByText($container, $pattern, $options = array())
 
 
 // Returns matching text if found, null if not found, throws if many found
-function queryByText($container, $pattern, $options = array())
+function queryByText($container, $pattern, $options = [])
 {
     $found = queryAllByText($container, $pattern, $options);
     return expectAtMostOne($found, "text", $pattern);
 }
 
 // Get atleast one matching text, throws if nothing found
-function getAllByText($container, $pattern, $options = array())
+function getAllByText($container, $pattern, $options = [])
 {
     $found = queryAllByText($container, $pattern, $options);
     return expectAtleastOne($found, "text", $pattern);
 }
 
 // Get one matching text, throws if nothing found, throws if many found
-function getByText($container, $pattern, $options = array())
+function getByText($container, $pattern, $options = [])
 {
     $found = queryAllByText($container, $pattern, $options);
     return expectOnlyOne($found, "text", $pattern);
@@ -201,7 +201,7 @@ function getByText($container, $pattern, $options = array())
 
 
 // Returns a list of DOMNodes with matching data-testid
-function queryAllByTestId($container, $pattern, $options = array())
+function queryAllByTestId($container, $pattern, $options = [])
 {
     $dom = getDocument($container);
     $xpath = getXPath($dom);
@@ -215,7 +215,7 @@ function queryAllByTestId($container, $pattern, $options = array())
             $testId = $node->getAttribute("data-testid");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $testId, $options);
             if($hasMatch) {
-                if(!in_array($node, $found, true)) {
+                if(!\in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -226,21 +226,21 @@ function queryAllByTestId($container, $pattern, $options = array())
 
 
 // Returns matching data-testid if found, null if not found, throws if many found
-function queryByTestId($container, $pattern, $options = array())
+function queryByTestId($container, $pattern, $options = [])
 {
     $found = queryAllByTestId($container, $pattern, $options);
     return expectAtMostOne($found, "data-testid", $pattern);
 }
 
 // Get atleast one matching data-testid, throws if nothing found
-function getAllByTestId($container, $pattern, $options = array())
+function getAllByTestId($container, $pattern, $options = [])
 {
     $found = queryAllByTestId($container, $pattern, $options);
     return expectAtleastOne($found, "data-testid", $pattern);
 }
 
 // Get one matching data-testid, throws if nothing found, throws if many found
-function getByTestId($container, $pattern, $options = array())
+function getByTestId($container, $pattern, $options = [])
 {
     $found = queryAllByTestId($container, $pattern, $options);
     return expectOnlyOne($found, "data-testid", $pattern);
@@ -248,7 +248,7 @@ function getByTestId($container, $pattern, $options = array())
 
 
 // Returns a list of DOMNodes with matching title attribute or title in svg
-function queryAllByTitle($container, $pattern, $options = array())
+function queryAllByTitle($container, $pattern, $options = [])
 {
     $dom = getDocument($container);
     $xpath = getXPath($dom);
@@ -261,7 +261,7 @@ function queryAllByTitle($container, $pattern, $options = array())
             $title = $node->getAttribute("title");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $title, $options);
             if($hasMatch) {
-                if(!in_array($node, $found, true)) {
+                if(!\in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -274,7 +274,7 @@ function queryAllByTitle($container, $pattern, $options = array())
         $text = $node->textContent;
         $hasMatch = \pest\utils\hasTextMatch($pattern, $text, $options);
         if($hasMatch) {
-            if(!in_array($node, $found, true)) {
+            if(!\in_array($node, $found, true)) {
                 $found[] = $node;
             }
         }
@@ -286,21 +286,21 @@ function queryAllByTitle($container, $pattern, $options = array())
 
 
 // Returns matching title if found, null if not found, throws if many found
-function queryByTitle($container, $pattern, $options = array())
+function queryByTitle($container, $pattern, $options = [])
 {
     $found = queryAllByTitle($container, $pattern, $options);
     return expectAtMostOne($found, "title", $pattern);
 }
 
 // Get atleast one matching title, throws if nothing found
-function getAllByTitle($container, $pattern, $options = array())
+function getAllByTitle($container, $pattern, $options = [])
 {
     $found = queryAllByTitle($container, $pattern, $options);
     return expectAtleastOne($found, "title", $pattern);
 }
 
 // Get one matching title, throws if nothing found, throws if many found
-function getByTitle($container, $pattern, $options = array())
+function getByTitle($container, $pattern, $options = [])
 {
     $found = queryAllByTitle($container, $pattern, $options);
     return expectOnlyOne($found, "title", $pattern);
@@ -310,7 +310,7 @@ function getByTitle($container, $pattern, $options = array())
 
 
 // Returns a list of DOMNodes with matching alt attribute
-function queryAllByAltText($container, $pattern, $options = array())
+function queryAllByAltText($container, $pattern, $options = [])
 {
     $dom = getDocument($container);
     $xpath = getXPath($dom);
@@ -322,11 +322,11 @@ function queryAllByAltText($container, $pattern, $options = array())
     foreach($nodelist as $node) {
         $tagName = strtolower($node->tagName);
         // alt attribute only accepted in img, input, area
-        if(isDomElement($node) && in_array($tagName, ["img", "input", "area"])) {
+        if(isDomElement($node) && \in_array($tagName, ["img", "input", "area"])) {
             $alt = $node->getAttribute("alt");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $alt, $options);
             if($hasMatch) {
-                if(!in_array($node, $found, true)) {
+                if(!\in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -338,21 +338,21 @@ function queryAllByAltText($container, $pattern, $options = array())
 
 
 // Returns matching alt attribute if found, null if not found, throws if many found
-function queryByAltText($container, $pattern, $options = array())
+function queryByAltText($container, $pattern, $options = [])
 {
     $found = queryAllByAltText($container, $pattern, $options);
     return expectAtMostOne($found, "alt", $pattern);
 }
 
 // Get atleast one matching alt attribute, throws if nothing found
-function getAllByAltText($container, $pattern, $options = array())
+function getAllByAltText($container, $pattern, $options = [])
 {
     $found = queryAllByAltText($container, $pattern, $options);
     return expectAtleastOne($found, "alt", $pattern);
 }
 
 // Get one matching alt attribute, throws if nothing found, throws if many found
-function getByAltText($container, $pattern, $options = array())
+function getByAltText($container, $pattern, $options = [])
 {
     $found = queryAllByAltText($container, $pattern, $options);
     return expectOnlyOne($found, "alt", $pattern);
@@ -361,7 +361,7 @@ function getByAltText($container, $pattern, $options = array())
 
 
 // Returns a list of DOMNodes referenced by labels
-function queryAllByLabelText($container, $pattern, $options = array())
+function queryAllByLabelText($container, $pattern, $options = [])
 {
     // use selector to constrain the match
     $selector = isset($options['selector']) ? trim($options['selector']) : "*";
@@ -370,7 +370,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
     $xpath = getXPath($dom);
 
     $selectorNodes = [];
-    if (strlen($selector) > 0) {
+    if (\strlen($selector) > 0) {
         $selectorXPath = \pest\dom\cssSelectorToXPath($selector);
         $selectorNodes = iterator_to_array($xpath->query($selectorXPath, $container));
     }
@@ -387,25 +387,25 @@ function queryAllByLabelText($container, $pattern, $options = array())
         if(isDomElement($labelNode) && $hasMatch) {
             $for = $labelNode->getAttribute("for");
             $id = $labelNode->getAttribute("id");
-            if($for !== null && strlen($for) > 0) {
+            if($for !== null && \strlen($for) > 0) {
                 // "for" attribute, must find an input with matching id
                 $inputNodes = $xpath->query(".//*[@id=\"".$for."\"]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
-                    if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName) &&
-                        ($selector == "*" || in_array($inputNode, $selectorNodes))) {
+                    if(!\in_array($inputNode, $found, true) && isValidInputElements($inputTagName) &&
+                        ($selector == "*" || \in_array($inputNode, $selectorNodes))) {
                         $found[] = $inputNode;
                     }
                 }
             }
-            if($id !== null && strlen($id) > 0) {
+            if($id !== null && \strlen($id) > 0) {
                 // "id" attribute, must find an input with matching aria-labelledby
                 // Note! aria-labelledby can be a space separated list
                 $inputNodes = $xpath->query(".//*[contains(concat(\" \",normalize-space(@aria-labelledby),\" \"),\" ".$id." \")]");
                 foreach($inputNodes as $inputNode) {
                     $inputTagName = strtolower($inputNode->tagName);
-                    if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName) &&
-                        ($selector == "*" || in_array($inputNode, $selectorNodes))) {
+                    if(!\in_array($inputNode, $found, true) && isValidInputElements($inputTagName) &&
+                        ($selector == "*" || \in_array($inputNode, $selectorNodes))) {
                         $found[] = $inputNode;
                     }
                 }
@@ -415,8 +415,8 @@ function queryAllByLabelText($container, $pattern, $options = array())
             $inputNodes = $xpath->query(".//*", $labelNode);
             foreach($inputNodes as $inputNode) {
                 $inputTagName = strtolower($inputNode->tagName);
-                if(!in_array($inputNode, $found, true) && isValidInputElements($inputTagName) &&
-                    ($selector == "*" || in_array($inputNode, $selectorNodes))) {
+                if(!\in_array($inputNode, $found, true) && isValidInputElements($inputTagName) &&
+                    ($selector == "*" || \in_array($inputNode, $selectorNodes))) {
                     $found[] = $inputNode;
                 }
             }
@@ -431,7 +431,7 @@ function queryAllByLabelText($container, $pattern, $options = array())
         $ariaLabel = $node->getAttribute("aria-label");
         $hasMatch = \pest\utils\hasTextMatch($pattern, $ariaLabel, $options);
         if($hasMatch) {
-            if(!in_array($node, $found, true)) {
+            if(!\in_array($node, $found, true)) {
                 $found[] = $node;
             }
         }
@@ -443,21 +443,21 @@ function queryAllByLabelText($container, $pattern, $options = array())
 
 
 // Returns elements with matching labels if found, null if not found, throws if many found
-function queryByLabelText($container, $pattern, $options = array())
+function queryByLabelText($container, $pattern, $options = [])
 {
     $found = queryAllByLabelText($container, $pattern, $options);
     return expectAtMostOne($found, "label", $pattern);
 }
 
 // Get atleast one element with matching label, throws if nothing found
-function getAllByLabelText($container, $pattern, $options = array())
+function getAllByLabelText($container, $pattern, $options = [])
 {
     $found = queryAllByLabelText($container, $pattern, $options);
     return expectAtleastOne($found, "label", $pattern);
 }
 
 // Get one element with matching label, throws if nothing found, throws if many found
-function getByLabelText($container, $pattern, $options = array())
+function getByLabelText($container, $pattern, $options = [])
 {
     $found = queryAllByLabelText($container, $pattern, $options);
     return expectOnlyOne($found, "label", $pattern);
@@ -466,7 +466,7 @@ function getByLabelText($container, $pattern, $options = array())
 
 
 // Returns a list of DOMNodes with matching placeholder
-function queryAllByPlaceholderText($container, $pattern, $options = array())
+function queryAllByPlaceholderText($container, $pattern, $options = [])
 {
     $dom = getDocument($container);
     $xpath = getXPath($dom);
@@ -480,7 +480,7 @@ function queryAllByPlaceholderText($container, $pattern, $options = array())
             $placeholder = $node->getAttribute("placeholder");
             $hasMatch = \pest\utils\hasTextMatch($pattern, $placeholder, $options);
             if($hasMatch) {
-                if(!in_array($node, $found, true)) {
+                if(!\in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -491,21 +491,21 @@ function queryAllByPlaceholderText($container, $pattern, $options = array())
 
 
 // Returns elements with matching placeholder if found, null if not found, throws if many found
-function queryByPlaceholderText($container, $pattern, $options = array())
+function queryByPlaceholderText($container, $pattern, $options = [])
 {
     $found = queryAllByPlaceholderText($container, $pattern, $options);
     return expectAtMostOne($found, "placeholder", $pattern);
 }
 
 // Get atleast one element with matching placeholder, throws if nothing found
-function getAllByPlaceholderText($container, $pattern, $options = array())
+function getAllByPlaceholderText($container, $pattern, $options = [])
 {
     $found = queryAllByPlaceholderText($container, $pattern, $options);
     return expectAtleastOne($found, "placeholder", $pattern);
 }
 
 // Get one element with matching placeholder, throws if nothing found, throws if many found
-function getByPlaceholderText($container, $pattern, $options = array())
+function getByPlaceholderText($container, $pattern, $options = [])
 {
     $found = queryAllByPlaceholderText($container, $pattern, $options);
     return expectOnlyOne($found, "placeholder", $pattern);
@@ -513,7 +513,7 @@ function getByPlaceholderText($container, $pattern, $options = array())
 
 
 // Returns a list of DOMNodes with matching display value
-function queryAllByDisplayValue($container, $pattern, $options = array())
+function queryAllByDisplayValue($container, $pattern, $options = [])
 {
     $dom = getDocument($container);
     $xpath = getXPath($dom);
@@ -526,7 +526,7 @@ function queryAllByDisplayValue($container, $pattern, $options = array())
             $displayValue = \pest\dom\getElementValue($node);
             $hasMatch = \pest\utils\hasTextMatch($pattern, $displayValue, $options);
             if($hasMatch) {
-                if(!in_array($node, $found, true)) {
+                if(!\in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -540,7 +540,7 @@ function queryAllByDisplayValue($container, $pattern, $options = array())
             $displayValue = \pest\dom\getSelectValue($node, ["displayValue" => true]);
             $hasMatch = \pest\utils\hasTextMatch($pattern, $displayValue, $options);
             if($hasMatch) {
-                if(!in_array($node, $found, true)) {
+                if(!\in_array($node, $found, true)) {
                     $found[] = $node;
                 }
             }
@@ -552,21 +552,21 @@ function queryAllByDisplayValue($container, $pattern, $options = array())
 
 
 // Returns elements with matching display value if found, null if not found, throws if many found
-function queryByDisplayValue($container, $pattern, $options = array())
+function queryByDisplayValue($container, $pattern, $options = [])
 {
     $found = queryAllByDisplayValue($container, $pattern, $options);
     return expectAtMostOne($found, "display value", $pattern);
 }
 
 // Get atleast one element with matching display value, throws if nothing found
-function getAllByDisplayValue($container, $pattern, $options = array())
+function getAllByDisplayValue($container, $pattern, $options = [])
 {
     $found = queryAllByDisplayValue($container, $pattern, $options);
     return expectAtleastOne($found, "display value", $pattern);
 }
 
 // Get one element with matching display value, throws if nothing found, throws if many found
-function getByDisplayValue($container, $pattern, $options = array())
+function getByDisplayValue($container, $pattern, $options = [])
 {
     $found = queryAllByDisplayValue($container, $pattern, $options);
     return expectOnlyOne($found, "display value", $pattern);

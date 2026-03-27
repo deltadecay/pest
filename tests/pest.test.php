@@ -73,7 +73,7 @@ test("instanceof", function() {
     class B extends A {}
     $a = new A();
     $b = new B();
-    expect($a)->toBeInstanceOf(get_class($a));  
+    expect($a)->toBeInstanceOf(\get_class($a));  
     expect($b)->toBeInstanceOf(__NAMESPACE__."\\B");  
     expect($b)->toBeInstanceOf(__NAMESPACE__."\\A");  
     expect($a)->not()->toBeInstanceOf(__NAMESPACE__."\\B");  

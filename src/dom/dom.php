@@ -80,7 +80,7 @@ function debug($dom)
         {
 
             // Remove the dummy root that we added in parse
-            //$str = substr($out, strlen("<dummypestroot id=\"$id\">"), -(strlen("</dummypestroot>")+1));
+            //$str = substr($out, \strlen("<dummypestroot id=\"$id\">"), -(\strlen("</dummypestroot>")+1));
             //$str = $dom->saveHtml();
         }
     }*/
@@ -91,7 +91,7 @@ function debug($dom)
     
     if($idx_start !== false)
     {
-        $out = substr($out, $idx_start + strlen($dummy_start ));
+        $out = substr($out, $idx_start + \strlen($dummy_start));
     }
 
     $dummy_end = "</dummypestroot>";
@@ -108,7 +108,7 @@ function debug($dom)
 
 function expectAtMostOne($found, $type="some", $pattern="value")
 {
-    $n = count($found);
+    $n = \count($found);
     if ($n == 0) {
         return null;
     } 
@@ -120,7 +120,7 @@ function expectAtMostOne($found, $type="some", $pattern="value")
 
 function expectAtleastOne($found, $type="some", $pattern="value")
 {
-    if(count($found) == 0) {
+    if(\count($found) == 0) {
         throw new Exception("Expected atleast one element with $type $pattern, but found none.");
     }
     return $found;
@@ -128,7 +128,7 @@ function expectAtleastOne($found, $type="some", $pattern="value")
 
 function expectOnlyOne($found, $type="some", $pattern="value")
 {
-    $n = count($found);
+    $n = \count($found);
     if ($n == 0) {
         throw new Exception("Expected one element with $type $pattern, but found none.");
     } 
@@ -261,7 +261,7 @@ function computeAccessibleName($node, $traversal = [])
         }
         // join with space according to doc 2.B.ii.c
         $joinedName = trim(implode(" ", $accNames));
-        if(strlen($joinedName)>0) {
+        if(\strlen($joinedName)>0) {
             return $joinedName;
         }   
     }
@@ -270,7 +270,7 @@ function computeAccessibleName($node, $traversal = [])
 
     if($node->hasAttribute("aria-label")) {
         $label = normalize($node->getAttribute("aria-label"));
-        if(strlen($label)>0) {
+        if(\strlen($label)>0) {
             return $label;
         }   
     }
@@ -295,7 +295,7 @@ function computeAccessibleName($node, $traversal = [])
         $traversal['source'] = null;
         // join with space according to doc 2.B.ii.c
         $joinedName = trim(implode(" ", $accNames));
-        if(strlen($joinedName)>0) {
+        if(\strlen($joinedName)>0) {
             return $joinedName;
         }   
     }
@@ -315,7 +315,7 @@ function computeAccessibleName($node, $traversal = [])
             $traversal['source'] = null;
             // join with space according to doc 2.B.ii.c
             $joinedName = trim(implode(" ", $accNames));
-            if(strlen($joinedName)>0) {
+            if(\strlen($joinedName)>0) {
                 return $joinedName;
             }   
         }
@@ -346,7 +346,7 @@ function computeAccessibleName($node, $traversal = [])
             $accNames[] = normalize(computeAccessibleName($childNode, $traversal));
         }
         $joinedName = trim(implode(" ", $accNames));
-        if(strlen($joinedName)>0) {
+        if(\strlen($joinedName)>0) {
             return $joinedName;
         }   
     }
@@ -354,7 +354,7 @@ function computeAccessibleName($node, $traversal = [])
 
     if($tagName == "img" && $node->hasAttribute("alt")) {
         $alt = $node->getAttribute("alt");
-        if(strlen($alt)>0) {
+        if(\strlen($alt)>0) {
             return $alt;
         }  
     }
@@ -369,14 +369,14 @@ function computeAccessibleName($node, $traversal = [])
             }
         }
         $joinedName = trim(implode(" ", $accNames));
-        if(strlen($joinedName)>0) {
+        if(\strlen($joinedName)>0) {
             return $joinedName;
         }   
     }
 
     if($node->hasAttribute("title")) {
         $title = $node->getAttribute("title");
-        if(strlen($title)>0) {
+        if(\strlen($title)>0) {
             return $title;
         }  
     }
@@ -384,7 +384,7 @@ function computeAccessibleName($node, $traversal = [])
 
     if($node->hasAttribute("placeholder")) {
         $placeholder = $node->getAttribute("placeholder");
-        if(strlen($placeholder)>0) {
+        if(\strlen($placeholder)>0) {
             return $placeholder;
         }  
     }
@@ -399,7 +399,7 @@ function isValidInputElements($node)
     } else {
         $tagName = strtolower("$node");
     }
-    return in_array($tagName, ["input", "select", "textarea", "meter", "progress"]);
+    return \in_array($tagName, ["input", "select", "textarea", "meter", "progress"]);
 }
 
 
@@ -550,7 +550,7 @@ function isElementHidden($node)
     }
     // Check style for css which hides the element
     $style = $node->getAttribute("style");
-    if($style !== null && strlen($style) > 0) {
+    if($style !== null && \strlen($style) > 0) {
         if(preg_match("/display\:\s*none\s*\;/i", $style)) {
             // display: none;
             return true;
@@ -639,7 +639,7 @@ function getSelectValue($select, $options = [])
         return $values;
     }
 
-    if (count($selectedOptions) == 0) {
+    if (\count($selectedOptions) == 0) {
         return null;
     } 
 
@@ -712,7 +712,7 @@ function getFirstNonEmptyChildNode($node)
         {
             $tagName = strtolower($childNode->tagName);
             // br, hr are skipped since they never contain text but can appear midst test
-            if(!in_array($tagName, ["br", "hr"])) {
+            if(!\in_array($tagName, ["br", "hr"])) {
                 $found = $childNode;
                 break;
             }
@@ -720,7 +720,7 @@ function getFirstNonEmptyChildNode($node)
         elseif (isDomText($childNode)) 
         {   
             $text = normalize($childNode->textContent);
-            if(strlen($text) > 0) {
+            if(\strlen($text) > 0) {
                 $found = $childNode;
                 break;
             }
@@ -731,7 +731,7 @@ function getFirstNonEmptyChildNode($node)
 
 function readToken($pos, $str, $delimiters = " ,.[]():#\"'+~>")
 {
-    $len = strlen($str);
+    $len = \strlen($str);
     $token = "";
     while($pos < $len) {
         $c = $str[$pos];
@@ -759,23 +759,23 @@ function selectNthFromExpression($expr, $posexpr = "position()")
             $cond = "[($posexpr mod 2)=1]";
         } elseif($matches["evenodd"] == "even") {
             $cond = "[($posexpr mod 2)=0]";
-        } elseif(strlen($matches["pos"]) > 0) {
+        } elseif(\strlen($matches["pos"]) > 0) {
             if($posexpr == "position()") {
-                $cond = "[".intval($matches["pos"])."]";
+                $cond = "[".\intval($matches["pos"])."]";
             } else {
-                $cond = "[$posexpr=".intval($matches["pos"])."]";
+                $cond = "[$posexpr=".\intval($matches["pos"])."]";
             }
-        } elseif(strlen($matches["anplusb"]) > 0) {
+        } elseif(\strlen($matches["anplusb"]) > 0) {
             $a = 1;
             if($matches["a"] == "-") {
                 $a = -1;
             } elseif($matches["a"] == "") {
                 $a = 1;
             } else { 
-                $a = intval($matches["a"]);
+                $a = \intval($matches["a"]);
             }
             
-            $b = isset($matches["b"]) && strlen($matches["b"])>0 ? intval($matches["b"]) : 0;
+            $b = isset($matches["b"]) && \strlen($matches["b"])>0 ? \intval($matches["b"]) : 0;
             $op = isset($matches["op"]) && $matches["op"] == "-" ? "-" : "+";
             
             if($a == 0 && $op == "+") {
@@ -812,7 +812,7 @@ function cssSelectorToXPath($selector)
     $str = $selector;
     // Collapse and trim whitespace so we have at most only one space separating characters
     $str = normalize($str);
-    $len = strlen($str);
+    $len = \strlen($str);
     $xpath = ".//";
     $elem = "*";
     $i = 0;
@@ -822,7 +822,7 @@ function cssSelectorToXPath($selector)
             case ':': {
                 // pseudo-class
                 $name = readToken($i+1, $str);
-                $i += strlen($name);
+                $i += \strlen($name);
                 // TODO support more of these
                 switch($name) {
                     case "first-child":
@@ -861,9 +861,9 @@ function cssSelectorToXPath($selector)
                     case "nth-of-type":
                         if($str[$i+1] == "(") {
                             $expr = readToken($i+2, $str, ")");
-                            $i += strlen($expr) + 2; // +2 for start and end parentheses ()
+                            $i += \strlen($expr) + 2; // +2 for start and end parentheses ()
                             $cond = selectNthFromExpression($expr, "position()");
-                            if(strlen($cond)> 0) {
+                            if(\strlen($cond)> 0) {
                                 $xpath .= $elem.$cond;
                                 $elem = "";
                             }
@@ -872,9 +872,9 @@ function cssSelectorToXPath($selector)
                     case "nth-child":
                         if($str[$i+1] == "(") {
                             $expr = readToken($i+2, $str, ")");
-                            $i += strlen($expr) + 2; // +2 for start and end parentheses ()
+                            $i += \strlen($expr) + 2; // +2 for start and end parentheses ()
                             $cond = selectNthFromExpression($expr, "(count(preceding-sibling::*)+1)");
-                            if(strlen($cond)> 0) {
+                            if(\strlen($cond)> 0) {
                                 $xpath .= $elem.$cond;
                                 $elem = "";
                             }
@@ -884,7 +884,7 @@ function cssSelectorToXPath($selector)
             }
             break;
             case ' ': {
-                if(in_array($str[$i+1], ['>','+','~',','])) {
+                if(\in_array($str[$i+1], ['>','+','~',','])) {
                     // Do nothing if next is one of the above, they will be handled in the cases below
                 } else {
                     $xpath .= "//";
@@ -919,25 +919,25 @@ function cssSelectorToXPath($selector)
             /*case '"': {
                 $state['string'] = 'string';
                 $name = readToken($i+1, $str, "\"");
-                $i += strlen($name) + 1; // +1 for ending "
+                $i += \strlen($name) + 1; // +1 for ending "
             }
             break;
             case '\'': {
                 $state['string'] = 'string';
                 $name = readToken($i+1, $str, "'");
-                $i += strlen($name) + 1; // +1 for ending '
+                $i += \strlen($name) + 1; // +1 for ending '
             }
             break;*/
             case '[': {
                 // attribute
                 $attrSpec = readToken($i+1, $str, "]");
-                $i += strlen($attrSpec) + 1; // +1 for ending ]
+                $i += \strlen($attrSpec) + 1; // +1 for ending ]
                 unset($matches);
                 // parse attribute in the form [name op "value"]
                 if(preg_match("/(?P<name>[a-zA-Z0-9_-]*)\s*((?P<op>[\^\*\~\$|]*=)\s*[\"'](?P<value>.*)[\"'])?/i", $attrSpec, $matches)) {
                     $attrName = $matches["name"];
                     $xpath .= $elem;
-                    if (isset($matches["op"]) && strlen($matches["op"]) > 0) {
+                    if (isset($matches["op"]) && \strlen($matches["op"]) > 0) {
                         $attrOp = $matches["op"];
                         $attrValue = $matches["value"];
                         // Escape double quotes
@@ -974,8 +974,8 @@ function cssSelectorToXPath($selector)
             case ".": {
                 // class
                 $name = readToken($i+1, $str);
-                $i += strlen($name);
-                if(strlen($name) > 0) {
+                $i += \strlen($name);
+                if(\strlen($name) > 0) {
                     $xpath .= $elem."[contains(concat(\" \",normalize-space(@class),\" \"),\" ".$name." \")]";
                     $elem = "";
                 }
@@ -984,8 +984,8 @@ function cssSelectorToXPath($selector)
             case "#": {
                 // id
                 $name = readToken($i+1, $str);
-                $i += strlen($name);
-                if(strlen($name) > 0) {
+                $i += \strlen($name);
+                if(\strlen($name) > 0) {
                     $xpath .= $elem."[@id=\"".$name."\"]";
                     $elem = "";
                 }
@@ -994,9 +994,9 @@ function cssSelectorToXPath($selector)
             default: {
                 // No preceding special char, assume it is the name of an element
                 $name = readToken($i, $str);
-                $i += strlen($name);
+                $i += \strlen($name);
                 $xpath .= $name;
-                if(strlen($name) > 0) {
+                if(\strlen($name) > 0) {
                     // If we read a token it means we read an element
                     // but we didn't precede by a special char, so must compensate for the i++ later
                     $i--;
@@ -1051,7 +1051,7 @@ function querySelectorAll($node, $selector)
 function querySelector($node, $selector) 
 {
     $elements = querySelectorAll($node, $selector);
-    if(count($elements) > 0) {
+    if(\count($elements) > 0) {
         return $elements[0];
     }
     return null;

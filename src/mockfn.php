@@ -44,7 +44,7 @@ class MockFn
 
     public function __invoke(...$params)
     {
-        $currentCallId = count($this->calls);
+        $currentCallId = \count($this->calls);
 
         $this->calls[$currentCallId] = $params;
         $this->results[$currentCallId] = ["type" => "incomplete"];
@@ -53,7 +53,7 @@ class MockFn
         $result = ["type" => "return", "value" => $res];
         if(is_callable($this->callable)) {
             try {
-                $res = call_user_func_array($this->callable, $params);
+                $res = \call_user_func_array($this->callable, $params);
                 $result["value"] = $res;
             } catch(\Exception $e) {
                 $result = ["type" => "throw", "value" => $e];

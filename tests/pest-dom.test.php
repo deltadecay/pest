@@ -31,7 +31,7 @@ test("query ByRole", function() use($dom) {
 
     $headers = dom\queryAllByRole($dom, "heading", ["name" => "/^title$/i"]);
 
-    expect(count($headers))->toBe(1);
+    expect(\count($headers))->toBe(1);
 
     $inputText = dom\getByRole($dom, "textbox");
     expect($inputText)->toBeInTheDocument();
@@ -46,7 +46,7 @@ test("query ByRole", function() use($dom) {
 test("query ByText", function() use($dom) {
     
     $spanText = dom\queryAllByText($dom, "Some data here");
-    expect(count($spanText))->toBe(1);
+    expect(\count($spanText))->toBe(1);
 
     $helloWorldText = dom\queryByText($dom, "/hello\s+world/i");
     expect($helloWorldText)->toBeInTheDocument();
@@ -70,7 +70,7 @@ HTML;
     $dom = dom\parse($src);
 
     $matches = dom\queryAllByText($dom, "/match/i", ["ignore" => "script, style"]);
-    expect(count($matches))->toBe(1);
+    expect(\count($matches))->toBe(1);
     expect($matches[0])->toHaveTextContent("Match only this span");
 });
 
